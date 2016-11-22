@@ -68,7 +68,7 @@
 #define RT_USING_SERIAL
 
 #define RT_USING_UART1
-//#define RT_USING_UART2
+#define RT_USING_UART2
 //#define RT_USING_UART3
 
 /* SECTION: Console options */
@@ -76,6 +76,7 @@
 /* the buffer size of console*/
 #define RT_CONSOLEBUF_SIZE	        128
 // <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart1" />
+// if you use the console, and you need to configure the 'STM32_CONSOLE_USART' in board.h .
 #define RT_CONSOLE_DEVICE_NAME	    "uart1"
 
 /* SECTION: finsh, a C-Express shell */

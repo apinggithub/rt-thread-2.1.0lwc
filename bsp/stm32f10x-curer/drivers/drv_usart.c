@@ -153,7 +153,6 @@ static const struct rt_uart_ops drv_uart_ops =
 
 #if defined(RT_USING_UART1)
 /* UART1 device driver structure */
-extern UART_HandleTypeDef huart1;
 static struct drv_uart uart1;
 struct rt_serial_device serial1;
 
@@ -178,6 +177,32 @@ void USART1_IRQHandler(void)
 }
 #endif /* RT_USING_UART1 */
 
+#if defined(RT_USING_UART2)
+/* UART1 device driver structure */
+static struct drv_uart uart2;
+struct rt_serial_device serial2;
+
+void USART2_IRQHandler(void)
+{
+    struct drv_uart *uart;
+
+    uart = &uart2;
+    /* enter interrupt */
+    rt_interrupt_enter();
+
+    /* UART in mode Receiver -------------------------------------------------*/
+    if ((__HAL_UART_GET_FLAG(&uart->UartHandle, UART_FLAG_RXNE) != RESET) &&
+            (__HAL_UART_GET_IT_SOURCE(&uart->UartHandle, UART_IT_RXNE) != RESET))
+    {
+        rt_hw_serial_isr(&serial2, RT_SERIAL_EVENT_RX_IND);
+        /* Clear RXNE interrupt flag */
+        __HAL_UART_CLEAR_FLAG(&uart->UartHandle, UART_FLAG_RXNE);
+    }
+    /* leave interrupt */
+    rt_interrupt_leave();
+}
+#endif /* RT_USING_UART2 */
+
 /**
 * @brief UART MSP Initialization
 *        This function configures the hardware resources used in this example:
@@ -190,6 +215,7 @@ void USART1_IRQHandler(void)
 void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
     GPIO_InitTypeDef  GPIO_InitStruct;
+#if defined(RT_USING_UART1)	
     if (huart->Instance == USART1)
     {
         /*##-1- Enable peripherals and GPIO Clocks #################################*/
@@ -216,6 +242,36 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
         HAL_NVIC_SetPriority(USART1_IRQn, 0, 1);
         HAL_NVIC_EnableIRQ(USART1_IRQn);
     }	
+#endif /* RT_USING_UART1 */		
+
+#if defined(RT_USING_UART2)		
+		if (huart->Instance == USART2)
+    {
+        /*##-1- Enable peripherals and GPIO Clocks #################################*/
+        /* Enable GPIO TX/RX clock */
+        USART2_TX_GPIO_CLK_ENABLE();
+        USART2_RX_GPIO_CLK_ENABLE();
+
+        /* Enable USARTx clock */
+        USART2_CLK_ENABLE(); 
+
+        /*##-2- Configure peripheral GPIO ##########################################*/  
+        /* UART TX GPIO pin configuration  */
+        GPIO_InitStruct.Pin       = USART2_TX_PIN;
+        GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull      = GPIO_PULLUP;
+        GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;        
+        HAL_GPIO_Init(USART2_TX_GPIO_PORT, &GPIO_InitStruct);
+        
+        /* UART RX GPIO pin configuration  */
+        GPIO_InitStruct.Pin = USART2_RX_PIN;       
+        GPIO_InitStruct.Mode      = GPIO_MODE_AF_INPUT;
+        HAL_GPIO_Init(USART2_RX_GPIO_PORT, &GPIO_InitStruct);
+        
+        HAL_NVIC_SetPriority(USART2_IRQn, 0, 1);
+        HAL_NVIC_EnableIRQ(USART2_IRQn);
+    }	
+#endif /* RT_USING_UART2 */
 }
 
 /**
@@ -228,6 +284,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 */
 void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
 {
+#if defined(RT_USING_UART1)
     if (huart->Instance == USART1)
     {
         /*##-1- Reset peripherals ##################################################*/
@@ -241,8 +298,25 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
         HAL_GPIO_DeInit(USART1_RX_GPIO_PORT, USART1_RX_PIN);
 
         HAL_NVIC_DisableIRQ(USART1_IRQn);
+    }	
+#endif /* RT_USING_UART2 */
+
+#if defined(RT_USING_UART2)		
+		if (huart->Instance == USART2)
+    {
+        /*##-1- Reset peripherals ##################################################*/
+        USART2_FORCE_RESET();
+        USART2_RELEASE_RESET();
+
+        /*##-2- Disable peripherals and GPIO Clocks #################################*/
+        /* Configure UART Tx as alternate function  */
+        HAL_GPIO_DeInit(USART2_TX_GPIO_PORT, USART2_TX_PIN);
+        /* Configure UART Rx as alternate function  */
+        HAL_GPIO_DeInit(USART2_RX_GPIO_PORT, USART2_RX_PIN);
+
+        HAL_NVIC_DisableIRQ(USART2_IRQn);
     }		
-		
+#endif /* RT_USING_UART2 */		
 }
 
 int hw_usart_init(void)
@@ -251,11 +325,6 @@ int hw_usart_init(void)
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
 
 #ifdef RT_USING_UART1
-	
-		//assign the pin and function	
-		//HAL_UART_MspInit((UART_HandleTypeDef* )&huart1);
-		//assign the baud rate and data with etc.
-		//MX_USART1_UART_Init();
 	
     uart = &uart1;
     uart->UartHandle.Instance = USART1;
@@ -269,6 +338,21 @@ int hw_usart_init(void)
 													uart);
 	
 #endif /* RT_USING_UART1 */
+
+#ifdef RT_USING_UART2
+	
+    uart = &uart2;
+    uart->UartHandle.Instance = USART2;
+
+    serial2.ops    = &drv_uart_ops;
+    serial2.config = config;
+
+    /* register UART2 device */
+    rt_hw_serial_register(&serial2, "uart2",
+													RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+													uart);
+	
+#endif /* RT_USING_UART2 */
 
     return 0;
 }
