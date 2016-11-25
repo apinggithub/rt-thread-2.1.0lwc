@@ -42,6 +42,7 @@
 #endif
 
 #include "drv_led.h"
+#include "drv_gpio.h"
 
 ALIGN(RT_ALIGN_SIZE)
 static rt_uint8_t led_stack[ 512 ];
@@ -51,6 +52,8 @@ static void led_thread_entry(void* parameter)
     unsigned int count=0;
 
     int rt_led_hw_init();
+		stm32_hw_pin_init();
+		//rt_pin_mode(19, PIN_MODE_OUTPUT);
 
     while (1)
     {
@@ -60,8 +63,11 @@ static void led_thread_entry(void* parameter)
 #endif
         count++;
         rt_led_on();
+			  //rt_pin_write(19, PIN_HIGH);
+			
         rt_thread_delay( RT_TICK_PER_SECOND/2 ); /* sleep 0.5 second and switch to other thread */
-
+				//rt_pin_write(19, PIN_LOW);
+			
         /* led1 off */
 #ifndef RT_USING_FINSH
         rt_kprintf("led off\r\n");

@@ -13,9 +13,11 @@
  */
 #ifndef GPIO_H__
 #define GPIO_H__
+ 
+#include <stdint.h> 
+#include <drivers/pin.h>
 
-
-struct stm32_hw_pin_userdata
+struct stm32_hw_pin_app
 {
     int pin;
     uint32_t mode;
@@ -23,7 +25,7 @@ struct stm32_hw_pin_userdata
 
 #define PIN_USERDATA_END {-1,0}
 
-extern struct stm32_hw_pin_userdata stm32_pins[];
+extern struct stm32_hw_pin_app stm32_pins[];
 
 int stm32_hw_pin_init(void);
 

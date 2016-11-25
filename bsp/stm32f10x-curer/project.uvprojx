@@ -373,7 +373,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD, USE_HAL_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>applications;.;drivers;Libraries\CMSIS\Device\ST\STM32F1xx\Include;Libraries\CMSIS\Include;Libraries\STM32F1xx_HAL_Driver\Inc;..\..\include;..\..\libcpu\arm\cortex-m3;..\..\libcpu\arm\common;..\..\components\drivers\include;..\..\components\drivers\include;..\..\components\finsh</IncludePath>
+              <IncludePath>applications;.;drivers;Libraries\CMSIS\Device\ST\STM32F1xx\Include;Libraries\CMSIS\Include;Libraries\STM32F1xx_HAL_Driver\Inc;..\..\include;..\..\libcpu\arm\cortex-m3;..\..\libcpu\arm\common;..\..\components\drivers\include;..\..\components\drivers\include;..\..\components\drivers\include;..\..\components\finsh</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -450,6 +450,11 @@
               <FileName>drv_usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>drivers\drv_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>drivers\drv_gpio.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -572,14 +577,19 @@
               <FilePath>Libraries\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_iwdg.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f1xx_hal_nand.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>Libraries\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_nand.c</FilePath>
-            </File>
-            <File>
               <FileName>stm32f1xx_hal_nor.c</FileName>
               <FileType>1</FileType>
               <FilePath>Libraries\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_nor.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_msp_template.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>Libraries\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_msp_template.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_nand.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>Libraries\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_nand.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_pccard.c</FileName>
@@ -791,6 +801,11 @@
         <Group>
           <GroupName>DeviceDrivers</GroupName>
           <Files>
+            <File>
+              <FileName>pin.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\components\drivers\misc\pin.c</FilePath>
+            </File>
             <File>
               <FileName>serial.c</FileName>
               <FileType>1</FileType>
