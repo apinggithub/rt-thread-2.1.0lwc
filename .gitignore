@@ -21,3 +21,5 @@ documentation/html
 *.a
 *.i
 *.d
+
+bsp/stm32f10x-curer/project.uvguix.Administrator
