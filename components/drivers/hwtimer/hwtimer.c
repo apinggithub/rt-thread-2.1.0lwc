@@ -27,78 +27,50 @@
 
 rt_inline rt_uint32_t timeout_calc(rt_hwtimer_t *timer, rt_hwtimerval_t *tv)
 {
-    float overflow;
-    float timeout;
-    rt_uint32_t counter;
-    int i, index;
-    float tv_sec;
-    float devi_min = 1;
-    float devi;
 
-    /* 把定时器溢出时间和定时时间换算成秒 */
-    overflow = timer->info->maxcnt/(float)timer->freq;
-    tv_sec = tv->sec + tv->usec/(float)1000000;
-
-    if (tv_sec < (1/(float)timer->freq))
-    {
-        /* 定时时间小于计数周期 */
-        i = 0;
-        timeout = 1/(float)timer->freq;
-    }
-    else
-    {
-        for (i = 1; i > 0; i ++)
-        {
-            timeout = tv_sec/i;
-
-            if (timeout <= overflow)
-            {
-                counter = timeout*timer->freq;
-                devi = tv_sec - (counter/(float)timer->freq)*i;
-                /* 计算最小误差 */
-                if (devi > devi_min)
-                {
-                    i = index;
-                    timeout = tv_sec/i;
-                    break;
-                }
-                else if (devi == 0)
-                {
-                    break;
-                }
-                else if (devi < devi_min)
-                {
-                    devi_min = devi;
-                    index = i;
-                }
-            }
-        }
-    }
-
-    timer->cycles = i;
-    timer->reload = i;
-    timer->period_sec = timeout;
-    counter = timeout*timer->freq;
-
-    return counter;
+    timer->cycles = tv->sec * timer->freq;
+       
+    return timer->cycles;
 }
 
+extern rt_uint32_t SystemCoreClock;
 static rt_err_t rt_hwtimer_init(struct rt_device *dev)
 {
     rt_err_t result = RT_EOK;
     rt_hwtimer_t *timer;
 
-    timer = (rt_hwtimer_t *)dev;
-    /* 尝试将默认计数频率设为1Mhz */
-    if ((1000000 <= timer->info->maxfreq) && (1000000 >= timer->info->minfreq))
+    timer = (rt_hwtimer_t *)dev;   
+    
+    RT_ASSERT(timer->freq != 0);
+    
+    /* T=(TIM_Period+1)*(TIM_Prescaler+1)/TIMxCLK 
+    //T is timer cycles,The value of TIM_Period and TIM_Prescaler is (0-65535), TIMxCLK is system clock 72MHz
+    //if T =    1 us (1MHz), TIM_Prescaler = 71 ,  and the TIM_Period = 0 < 65535 ok. 
+    //if T =  100 us,(10KHz), TIM_Prescaler = 71 ,  and the TIM_Period = 99 < 65535 ok. 
+    //if T =  500 us,(2KHz), TIM_Prescaler = 71 ,  and the TIM_Period = 499 < 65535 ok. 
+    //if T =    1 ms,(1KHz), TIM_Prescaler = 71 ,  and the TIM_Period = 999 < 65535 ok. 
+    //if T =   10 ms,(100Hz), TIM_Prescaler = 71 ,  and the TIM_Period = 9999 < 65535 ok. 
+    //if T =   50 ms,(20Hz), TIM_Prescaler = 71 ,  and the TIM_Period = 49999 < 65535 ok. 
+    //if T = 1 s, TIM_Prescaler = 7199, and the TIM_Period = 9999 < 65535 ok.
+    */   
+    if ((1000000 <= timer->info->maxfreq) && (20 <= timer->info->minfreq))
     {
-        timer->freq = 1000000;
+        /*if the frequence that user set is in 20Hz ~ 1MHz */
+        /* the timer prescaler is the system clock hclk/freq */
+        /* if hclk=72MHz ,and the prescaler is 72000000/1000000 = 72 */
+        
+        timer->prescaler = SystemCoreClock/1000000 - 1; /*set the defualt prescaler is 71 */
     }
-    else
+    else //if(20 > timer->info->minfreq)
     {
-        timer->freq = timer->info->minfreq;
+        //timer->freq = timer->info->minfreq;
+        timer->prescaler = SystemCoreClock/10000 - 1; /*set the defualt prescaler is 7199 */
     }
-    timer->mode = HWTIMER_MODE_ONESHOT;
+    
+    timer->reload = SystemCoreClock/(timer->prescaler + 1)/timer->freq - 1; 
+    //timer_period = sysclk/(timer->prescaler + 1)/freq - 1;    
+    
+    timer->mode = HWTIMER_MODE_PERIOD;
     timer->cycles = 0;
     timer->overflow = 0;
 
@@ -158,7 +130,6 @@ static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buff
     rt_hwtimer_t *timer;
     rt_hwtimerval_t tv;
     rt_uint32_t cnt;
-    float t;
 
     timer = (rt_hwtimer_t *)dev;
     if (timer->ops->count_get == RT_NULL)
@@ -170,9 +141,10 @@ static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buff
         cnt = timer->info->maxcnt - cnt;
     }
 
-    t = timer->overflow * timer->period_sec + cnt/(float)timer->freq;
-    tv.sec = t;
-    tv.usec = (t - tv.sec) * 1000000;
+    RT_ASSERT(timer->freq != 0);
+    tv.sec =  timer->overflow/timer->freq;   
+    tv.usec = (timer->overflow%timer->freq)*1000000 + cnt;
+    
     size = size > sizeof(tv)? sizeof(tv) : size;
     rt_memcpy(buffer, &tv, size);
 
@@ -181,7 +153,7 @@ static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buff
 
 static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
-    rt_uint32_t t;
+    //rt_uint32_t cycles;
     rt_hwtimer_mode_t opm = HWTIMER_MODE_PERIOD;
     rt_hwtimer_t *timer;
 
@@ -191,6 +163,9 @@ static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const voi
 
     if (size != sizeof(rt_hwtimerval_t))
         return 0;
+    
+    //calculater the cycles to auto reload value
+    timer->cycles = timeout_calc(timer, (rt_hwtimerval_t*)buffer);
 
     if ((timer->cycles <= 1) && (timer->mode == HWTIMER_MODE_ONESHOT))
     {
@@ -198,9 +173,8 @@ static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const voi
     }
     timer->ops->stop(timer);
     timer->overflow = 0;
-
-    t = timeout_calc(timer, (rt_hwtimerval_t*)buffer);
-    if (timer->ops->start(timer, t, opm) != RT_EOK)
+   
+    if (timer->ops->start(timer, opm) != RT_EOK)
         size = 0;
 
     return size;
@@ -303,24 +277,23 @@ void rt_device_hwtimer_isr(rt_hwtimer_t *timer)
 {
     RT_ASSERT(timer != RT_NULL);
 
-    timer->overflow ++;
+    timer->overflow ++;/* add in end of the timer period */
 
     if (timer->cycles != 0)
     {
         timer->cycles --;
     }
-
-    if (timer->cycles == 0)
+    else //if (timer->cycles == 0)
     {
-        timer->cycles = timer->reload;
+        //timer->cycles = timer->reload;
 
-        if (timer->mode == HWTIMER_MODE_ONESHOT)
-        {
+        //if (timer->mode == HWTIMER_MODE_ONESHOT)
+        //{
             if (timer->ops->stop != RT_NULL)
             {
                 timer->ops->stop(timer);
             }
-        }
+        //}
 
         if (timer->parent.rx_indicate != RT_NULL)
         {

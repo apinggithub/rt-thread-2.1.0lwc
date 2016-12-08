@@ -39,7 +39,7 @@ struct rt_hwtimer_device;
 struct rt_hwtimer_ops
 {
     void (*init)(struct rt_hwtimer_device *timer, rt_uint32_t state);
-    rt_err_t (*start)(struct rt_hwtimer_device *timer, rt_uint32_t cnt, rt_hwtimer_mode_t mode);
+    rt_err_t (*start)(struct rt_hwtimer_device *timer, rt_hwtimer_mode_t mode);
     void (*stop)(struct rt_hwtimer_device *timer);
     rt_uint32_t (*count_get)(struct rt_hwtimer_device *timer);
     rt_err_t (*control)(struct rt_hwtimer_device *timer, rt_uint32_t cmd, void *args);
@@ -48,8 +48,8 @@ struct rt_hwtimer_ops
 /* Timer Feature Information */
 struct rt_hwtimer_info
 {
-    rt_int32_t maxfreq;    /* the maximum count frequency timer support */
-    rt_int32_t minfreq;    /* the minimum count frequency timer support */
+    rt_uint32_t maxfreq;    /* the maximum count frequency timer support */
+    rt_uint32_t minfreq;    /* the minimum count frequency timer support */
     rt_uint32_t maxcnt;    /* counter maximum value */
     rt_uint8_t  cntmode;   /* count mode (inc/dec) */
 };
@@ -60,11 +60,14 @@ typedef struct rt_hwtimer_device
     const struct rt_hwtimer_ops *ops;
     const struct rt_hwtimer_info *info;
 
-    rt_int32_t freq;                /* counting frequency set by the user */
-    rt_int32_t overflow;            /* timer overflows */
-    float period_sec;               
-    rt_int32_t cycles;              /* how many times will generate a timeout event after overflow */
+    rt_int32_t freq;                /* counting frequency(Hz) set by the user */
+    rt_uint16_t prescaler;          /* timer prescaler */
     rt_int32_t reload;              /* reload cycles(using in period mode) */
+    
+    rt_int32_t overflow;            /* timer overflows */
+    
+    rt_int32_t cycles;              /* how many times will generate a timeout event after overflow */
+    
     rt_hwtimer_mode_t mode;         /* timing mode(oneshot/period) */
 } rt_hwtimer_t;
 

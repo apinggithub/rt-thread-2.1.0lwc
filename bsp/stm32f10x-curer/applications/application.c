@@ -47,13 +47,35 @@
 ALIGN(RT_ALIGN_SIZE)
 static rt_uint8_t led_stack[ 512 ];
 static struct rt_thread led_thread;
+
+static struct rt_timer timer1;
+/*定时器超时函数*/
+rt_uint8_t led2sw = 0;
+static void timeout1(void* parameter)
+{
+	//rt_kprintf("periodic timer is timeout\n");
+	
+	rt_pin_write(19, led2sw);
+	led2sw = (~led2sw)&0x01;
+	
+}
 static void led_thread_entry(void* parameter)
 {
     unsigned int count=0;
 
     int rt_led_hw_init();
-		stm32_hw_pin_init();
-		//rt_pin_mode(19, PIN_MODE_OUTPUT);
+    
+	rt_pin_mode(19, PIN_MODE_OUTPUT);// the port PF7 
+	
+	/* 初始化定时器*/
+	rt_timer_init(&timer1, "timer1", /* 定时器名为timer1 */
+	timeout1, /* 超时函数回调处理 */
+	RT_NULL, /* 超时函数入口参数*/
+	1000, /* 定时长度,OS 以Tick为单位,即10个OS Tick */
+	RT_TIMER_FLAG_PERIODIC); /* 周期性定时*/
+	
+	rt_timer_start(&timer1);	
+	
 
     while (1)
     {
@@ -101,6 +123,12 @@ void rt_init_thread_entry(void* parameter)
     rt_components_init();
 #endif
 
+#ifdef RT_USING_PIN    
+    
+  	stm32_hw_pin_init();  
+    
+#endif /* RT_USING_PIN */    
+    
     /* Filesystem Initialization */
 #if defined(RT_USING_DFS) && defined(RT_USING_DFS_ELMFAT)
     /* mount sd card fat partition 1 as root directory */

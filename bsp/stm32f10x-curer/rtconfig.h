@@ -26,6 +26,11 @@
 
 /* Using Software Timer */
 /* #define RT_USING_TIMER_SOFT */
+
+/* Using independent hardware Timer */
+#define RT_USING_HWTIMER  /*hardware timer driver switch*/
+#define RT_USING_HWTIM6 /*the hardtimer TIM6*/
+
 #define RT_TIMER_THREAD_PRIO		4
 #define RT_TIMER_THREAD_STACK_SIZE	512
 #define RT_TIMER_TICK_PER_SECOND	10
@@ -71,6 +76,9 @@
 #define RT_USING_UART2
 //#define RT_USING_UART3
 
+/*Using Pin select as device*/
+#define RT_USING_PIN
+
 /* SECTION: Console options */
 #define RT_USING_CONSOLE
 /* the buffer size of console*/
@@ -85,7 +93,6 @@
 #define FINSH_USING_SYMTAB
 #define FINSH_USING_DESCRIPTION
 
-#define RT_USING_PIN
 
 /*#define RT_USING_CAN*/
 #define RT_CAN_USING_BUS_HOOK

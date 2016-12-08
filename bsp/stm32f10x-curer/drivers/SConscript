@@ -14,7 +14,11 @@ drv_usart.c
 
 if GetDepend(['RT_USING_PIN']):
     src += ['drv_gpio.c']
-
+	
+#add hardware timer driver.
+if GetDepend(['RT_USING_HWTIMER']):
+    src += ['drv_hwtimer.c','tim.c']
+	
 # add canbus driver.
 if GetDepend('RT_USING_CAN'):
     src += ['bxcan.c']

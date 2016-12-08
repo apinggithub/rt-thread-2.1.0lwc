@@ -334,8 +334,8 @@ int hw_usart_init(void)
 
     /* register UART1 device */
     rt_hw_serial_register(&serial1, "uart1",
-													RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
-													uart);
+							RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+							uart);
 	
 #endif /* RT_USING_UART1 */
 
@@ -348,9 +348,9 @@ int hw_usart_init(void)
     serial2.config = config;
 
     /* register UART2 device */
-    rt_hw_serial_register(&serial2, "uart2",
-													RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
-													uart);
+    rt_hw_serial_register(&serial2, "uart2", 
+							RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+							uart);
 	
 #endif /* RT_USING_UART2 */
 
