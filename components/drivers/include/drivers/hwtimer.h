@@ -3,6 +3,7 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,18 +12,31 @@ extern "C" {
 /* Timer Control Command */
 typedef enum
 {
-    HWTIMER_CTRL_FREQ_SET = 0x01,    /* set the count frequency */
+    HWTIMER_CTRL_SET_FREQ = 0x01,    /* set the count frequency */
     HWTIMER_CTRL_STOP,               /* stop timer */
-    HWTIMER_CTRL_INFO_GET,           /* get a timer feature information */
-    HWTIMER_CTRL_MODE_SET            /* Setting the timing mode(oneshot/period) */
+    HWTIMER_CTRL_GET_INFO,           /* get a timer feature information */
+    HWTIMER_CTRL_SET_MODE,           /* Setting the timing mode(pwm,oc,ic or encoder) */
+    HWTIMER_CTRL_GET_AUTORELOAD,     /* get the timer autoreload */
+    HWTIMER_CTRL_SET_AUTORELOAD,     /* set the timer autoreload */
+    HWTIMER_CTRL_GET_DUTY_CYCLE,     /* get the timer pwm duty cycle */
+    HWTIMER_CTRL_SET_DUTY_CYCLE      /* set the timer pwm duty cycle */
 } rt_hwtimer_ctrl_t;
 
 /* Timing Mode */
-typedef enum
+/*typedef enum
 {
     HWTIMER_MODE_ONESHOT = 0x01,
     HWTIMER_MODE_PERIOD
-} rt_hwtimer_mode_t;
+} rt_hwtimer_mode_t;*/
+
+/* Timer Channel */
+typedef enum
+{
+    HWTIMER_CH1 = 0x00,    
+    HWTIMER_CH2,
+    HWTIMER_CH3,
+    HWTIMER_CH4    
+} rt_hwtimer_ch_t;
 
 /* Time Value */
 typedef struct rt_hwtimerval
@@ -30,6 +44,12 @@ typedef struct rt_hwtimerval
     rt_int32_t sec;      /* second */
     rt_int32_t usec;     /* microsecond */
 } rt_hwtimerval_t;
+
+typedef struct rt_hwtimercnt
+{
+    rt_int8_t ch;      /* channel no. */
+    rt_int16_t count;  /* counter */
+} rt_hwtimercnt_t;
 
 #define HWTIMER_CNTMODE_UP      0x01 /* increment count mode */
 #define HWTIMER_CNTMODE_DW      0x02 /* decreasing count mode */
@@ -39,9 +59,15 @@ struct rt_hwtimer_device;
 struct rt_hwtimer_ops
 {
     void (*init)(struct rt_hwtimer_device *timer, rt_uint32_t state);
-    rt_err_t (*start)(struct rt_hwtimer_device *timer, rt_hwtimer_mode_t mode);
+    rt_err_t (*start)(struct rt_hwtimer_device *timer, rt_off_t pos);
     void (*stop)(struct rt_hwtimer_device *timer);
-    rt_uint32_t (*count_get)(struct rt_hwtimer_device *timer);
+    rt_err_t (*set_prescaler)(struct rt_hwtimer_device *timer,rt_uint32_t val);
+    rt_uint32_t (*get_counter)(struct rt_hwtimer_device *timer);
+    rt_err_t (*set_counter)(struct rt_hwtimer_device *timer,rt_uint32_t val);
+    rt_uint32_t (*get_autoreload)(struct rt_hwtimer_device *timer);
+    rt_err_t (*set_autoreload)(struct rt_hwtimer_device *timer,rt_uint32_t val);
+    rt_uint32_t (*get_compare)(struct rt_hwtimer_device *timer,rt_uint8_t ch);
+    rt_err_t (*set_compare)(struct rt_hwtimer_device *timer,rt_uint8_t ch,rt_uint32_t val);
     rt_err_t (*control)(struct rt_hwtimer_device *timer, rt_uint32_t cmd, void *args);
 };
 
@@ -62,13 +88,16 @@ typedef struct rt_hwtimer_device
 
     rt_int32_t freq;                /* counting frequency(Hz) set by the user */
     rt_uint16_t prescaler;          /* timer prescaler */
-    rt_int32_t reload;              /* reload cycles(using in period mode) */
+    rt_int16_t reload;              /* reload cycles(using in period mode) */
     
-    rt_int32_t overflow;            /* timer overflows */
-    
+    rt_uint8_t channel_no[4];       /* the timer channel no.*/   
+    rt_uint8_t channel_type[4];     /* the timer work type ic,oc,pwm,and encode */    
+    rt_int16_t pwm_duty_cycle[4];   /* the pwm duty cycle */
+         
+    rt_int32_t overflow;            /* timer overflows */  
     rt_int32_t cycles;              /* how many times will generate a timeout event after overflow */
     
-    rt_hwtimer_mode_t mode;         /* timing mode(oneshot/period) */
+    //rt_hwtimer_mode_t mode;         /* timing mode(oneshot/period) */
 } rt_hwtimer_t;
 
 rt_err_t rt_device_hwtimer_register(rt_hwtimer_t *timer, const char *name, void *user_data);

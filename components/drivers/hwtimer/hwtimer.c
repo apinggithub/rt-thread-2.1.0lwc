@@ -70,7 +70,7 @@ static rt_err_t rt_hwtimer_init(struct rt_device *dev)
     timer->reload = SystemCoreClock/(timer->prescaler + 1)/timer->freq - 1; 
     //timer_period = sysclk/(timer->prescaler + 1)/freq - 1;    
     
-    timer->mode = HWTIMER_MODE_PERIOD;
+    //timer->mode = HWTIMER_MODE_PERIOD;
     timer->cycles = 0;
     timer->overflow = 0;
 
@@ -94,7 +94,7 @@ static rt_err_t rt_hwtimer_open(struct rt_device *dev, rt_uint16_t oflag)
     timer = (rt_hwtimer_t *)dev;
     if (timer->ops->control != RT_NULL)
     {
-        timer->ops->control(timer, HWTIMER_CTRL_FREQ_SET, &timer->freq);
+        timer->ops->control(timer, HWTIMER_CTRL_SET_FREQ, &timer->freq);
     }
     else
     {
@@ -132,10 +132,10 @@ static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buff
     rt_uint32_t cnt;
 
     timer = (rt_hwtimer_t *)dev;
-    if (timer->ops->count_get == RT_NULL)
+    if (timer->ops->get_counter == RT_NULL)
         return 0;
 
-    cnt = timer->ops->count_get(timer);
+    cnt = timer->ops->get_counter(timer);
     if (timer->info->cntmode == HWTIMER_CNTMODE_DW)
     {
         cnt = timer->info->maxcnt - cnt;
@@ -154,7 +154,7 @@ static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buff
 static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     //rt_uint32_t cycles;
-    rt_hwtimer_mode_t opm = HWTIMER_MODE_PERIOD;
+    //rt_hwtimer_mode_t opm = HWTIMER_MODE_PERIOD;
     rt_hwtimer_t *timer;
 
     timer = (rt_hwtimer_t *)dev;
@@ -167,14 +167,14 @@ static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const voi
     //calculater the cycles to auto reload value
     timer->cycles = timeout_calc(timer, (rt_hwtimerval_t*)buffer);
 
-    if ((timer->cycles <= 1) && (timer->mode == HWTIMER_MODE_ONESHOT))
-    {
-        opm = HWTIMER_MODE_ONESHOT;
-    }
+    //if ((timer->cycles <= 1) && (timer->mode == HWTIMER_MODE_ONESHOT))
+    //{
+    //    opm = HWTIMER_MODE_ONESHOT;
+    //}
     timer->ops->stop(timer);
     timer->overflow = 0;
    
-    if (timer->ops->start(timer, opm) != RT_EOK)
+    if (timer->ops->start(timer, pos) != RT_EOK)
         size = 0;
 
     return size;
@@ -189,85 +189,164 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
 
     switch (cmd)
     {
-    case HWTIMER_CTRL_STOP:
-    {
-        if (timer->ops->stop != RT_NULL)
+        case HWTIMER_CTRL_STOP:
         {
-            timer->ops->stop(timer);
-        }
-        else
-        {
-            result = -RT_ENOSYS;
-        }
-    }
-    break;
-    case HWTIMER_CTRL_FREQ_SET:
-    {
-        rt_uint32_t *f;
-
-        if (args == RT_NULL)
-        {
-            result = -RT_EEMPTY;
-            break;
-        }
-
-        f = (rt_uint32_t*)args;
-        if ((*f > timer->info->maxfreq) || (*f < timer->info->minfreq))
-        {
-            result = -RT_ERROR;
-            break;
-        }
-
-        if (timer->ops->control != RT_NULL)
-        {
-            result = timer->ops->control(timer, cmd, args);
-            if (result == RT_EOK)
+            if (timer->ops->stop != RT_NULL)
             {
-                timer->freq = *f;
+                timer->ops->stop(timer);
+            }
+            else
+            {
+                result = -RT_ENOSYS;
             }
         }
-        else
+        break;
+        case HWTIMER_CTRL_SET_FREQ:
         {
-            result = -RT_ENOSYS;
+            rt_uint32_t *f;
+            if (args == RT_NULL)
+            {
+                result = -RT_EEMPTY;
+                break;
+            }
+            f = (rt_uint32_t*)args;
+            if ((*f > timer->info->maxfreq) || (*f < timer->info->minfreq))
+            {
+                result = -RT_ERROR;
+                break;
+            }
+            if (timer->ops->control != RT_NULL)
+            {
+                result = timer->ops->control(timer, cmd, args);
+                if (result == RT_EOK)
+                {
+                    timer->freq = *f;
+                }
+            }
+            else
+            {
+                result = -RT_ENOSYS;
+            }
         }
-    }
-    break;
-    case HWTIMER_CTRL_INFO_GET:
-    {
-        if (args == RT_NULL)
+        break;
+        case HWTIMER_CTRL_GET_INFO:
         {
-            result = -RT_EEMPTY;
+            if (args == RT_NULL)
+            {
+                result = -RT_EEMPTY;
+                break;
+            }
+            *((struct rt_hwtimer_info*)args) = *timer->info;
+        }
+        break;
+        /*case HWTIMER_CTRL_MODE_SET:
+        {
+            rt_hwtimer_mode_t *m;
+            if (args == RT_NULL)
+            {
+                result = -RT_EEMPTY;
+                break;
+            }
+            m = (rt_hwtimer_mode_t*)args;            
+            timer->mode = *m;
+        }
+        break; */     
+        case HWTIMER_CTRL_GET_AUTORELOAD:
+        {            
+            if (args == RT_NULL)
+            {
+                result = -RT_EEMPTY;
+                break;
+            }
+            
+            if (timer->ops->get_autoreload != RT_NULL)
+            {
+                rt_uint32_t *val;
+                val = (rt_uint32_t*)args;
+                *val = timer->ops->get_autoreload(timer);      
+            }
+            else
+            {
+                result = -RT_ENOSYS;
+            }
+        }   
+        break;
+        case HWTIMER_CTRL_SET_AUTORELOAD:
+        {            
+            if (args == RT_NULL)
+            {
+                result = -RT_EEMPTY;
+                break;
+            }
+            
+            if (timer->ops->set_autoreload != RT_NULL)
+            {
+                rt_uint32_t val;
+                val = *(rt_uint32_t*)args;
+                result = timer->ops->set_autoreload(timer, val);      
+            }
+            else
+            {
+                result = -RT_ENOSYS;
+            }
+        }   
+        break;
+        case HWTIMER_CTRL_GET_DUTY_CYCLE:
+        {            
+            if (args == RT_NULL)
+            {
+                result = -RT_EEMPTY;
+                break;
+            }
+            
+            if (timer->ops->get_compare != RT_NULL)
+            {
+                rt_hwtimercnt_t *hwt;
+                hwt = (rt_hwtimercnt_t*)args;
+                hwt->count = timer->ops->get_compare(timer, hwt->ch);      
+            }
+            else
+            {
+                result = -RT_ENOSYS;
+            }
+        }   
+        break;
+        case HWTIMER_CTRL_SET_DUTY_CYCLE:
+        {
+            rt_uint8_t *ch;
+            if (args == RT_NULL)
+            {
+                result = -RT_EEMPTY;
+                break;
+            }
+            
+            ch = (rt_uint8_t*)args;
+            if (*ch > 4) /* ch max is in 0~3*/
+            {
+                result = -RT_ERROR;
+                break;
+            }
+            if (timer->ops->get_compare != RT_NULL)
+            {
+                rt_hwtimercnt_t *hwt;
+                hwt = (rt_hwtimercnt_t*)args;
+                result = timer->ops->set_compare(timer,hwt->ch, hwt->count);
+                if (result != RT_EOK)
+                {
+                    break;
+                }
+            }
+            else
+            {
+                result = -RT_ENOSYS;
+            }
+        }   
+        break;
+        default:  
+        { 
+            result = -RT_ENOSYS;   
             break;
         }
-
-        *((struct rt_hwtimer_info*)args) = *timer->info;
-    }
-    case HWTIMER_CTRL_MODE_SET:
-    {
-        rt_hwtimer_mode_t *m;
-
-        if (args == RT_NULL)
-        {
-            result = -RT_EEMPTY;
-            break;
-        }
-
-        m = (rt_hwtimer_mode_t*)args;
-
-        if ((*m != HWTIMER_MODE_ONESHOT) && (*m != HWTIMER_MODE_PERIOD))
-        {
-            result = -RT_ERROR;
-            break;
-        }
-
-        timer->mode = *m;
-    }
-    break;
-    default:
-    {
-        result = -RT_ENOSYS;
-    }
-    break;
     }
 
     return result;
@@ -284,16 +363,11 @@ void rt_device_hwtimer_isr(rt_hwtimer_t *timer)
         timer->cycles --;
     }
     else //if (timer->cycles == 0)
-    {
-        //timer->cycles = timer->reload;
-
-        //if (timer->mode == HWTIMER_MODE_ONESHOT)
-        //{
-            if (timer->ops->stop != RT_NULL)
-            {
-                timer->ops->stop(timer);
-            }
-        //}
+    {       
+        if (timer->ops->stop != RT_NULL)
+        {
+            timer->ops->stop(timer);
+        }        
 
         if (timer->parent.rx_indicate != RT_NULL)
         {

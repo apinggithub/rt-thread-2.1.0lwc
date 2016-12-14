@@ -29,7 +29,10 @@
 
 /* Using independent hardware Timer */
 #define RT_USING_HWTIMER  /*hardware timer driver switch*/
-#define RT_USING_HWTIM6 /*the hardtimer TIM6*/
+//#define RT_USING_HWTIM6 /*the base hardtimer TIM6*/
+//#define RT_USING_HWTIM2   /*the general hardtimer TIM2*/
+#define RT_USING_HWTIM3   /*the general hardtimer TIM2*/
+#define RT_USING_HWTIM4   /*the general hardtimer TIM4*/
 
 #define RT_TIMER_THREAD_PRIO		4
 #define RT_TIMER_THREAD_STACK_SIZE	512
