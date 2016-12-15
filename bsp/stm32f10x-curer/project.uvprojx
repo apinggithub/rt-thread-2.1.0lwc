@@ -354,7 +354,7 @@
             <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
-            <OneElfS>1</OneElfS>
+            <OneElfS>0</OneElfS>
             <Strict>0</Strict>
             <EnumInt>0</EnumInt>
             <PlainCh>0</PlainCh>
@@ -370,7 +370,7 @@
             <vShortEn>0</vShortEn>
             <vShortWch>0</vShortWch>
             <VariousControls>
-              <MiscControls>--C99</MiscControls>
+              <MiscControls></MiscControls>
               <Define>STM32F10X_HD, USE_HAL_DRIVER</Define>
               <Undefine></Undefine>
               <IncludePath>applications;.;drivers;Libraries\CMSIS\Device\ST\STM32F1xx\Include;Libraries\CMSIS\Include;Libraries\STM32F1xx_HAL_Driver\Inc;..\..\include;..\..\libcpu\arm\cortex-m3;..\..\libcpu\arm\common;..\..\components\drivers\include;..\..\components\drivers\include;..\..\components\drivers\include;..\..\components\drivers\include;..\..\components\finsh</IncludePath>
@@ -431,6 +431,11 @@
               <FileType>1</FileType>
               <FilePath>applications\drv_hwtimer_test.c</FilePath>
             </File>
+            <File>
+              <FileName>drv_hwbutton_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\drv_hwbutton_test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -470,6 +475,11 @@
               <FileName>tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>drivers\tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_hwbutton.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>drivers\drv_hwbutton.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -825,6 +835,11 @@
               <FileName>pin.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\components\drivers\misc\pin.c</FilePath>
+            </File>
+            <File>
+              <FileName>hwbutton.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\components\drivers\misc\hwbutton.c</FilePath>
             </File>
             <File>
               <FileName>serial.c</FileName>

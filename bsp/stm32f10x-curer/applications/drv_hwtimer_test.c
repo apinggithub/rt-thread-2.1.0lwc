@@ -5,8 +5,6 @@
 
 #ifdef RT_USING_HWTIMER
 
-
-
 static rt_err_t timer_timeout_cb(rt_device_t dev, rt_size_t size)
 {
     rt_kprintf("HT %d\n", rt_tick_get());    

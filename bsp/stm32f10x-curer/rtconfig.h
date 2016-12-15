@@ -24,6 +24,9 @@
 /* Using Hook */
 #define RT_USING_HOOK
 
+/* Using hardware button */
+ #define RT_USING_HWBUTTON 
+
 /* Using Software Timer */
 /* #define RT_USING_TIMER_SOFT */
 
