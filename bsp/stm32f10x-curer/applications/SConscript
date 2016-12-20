@@ -15,6 +15,9 @@ if GetDepend('RT_USING_HWTIMER'):
 if GetDepend('RT_USING_HWBUTTON'):
     src += ['drv_hwbutton_test.c']	
 
+if GetDepend(['RT_USING_LCDHT1621B']):
+    src = src + ['drv_lcdht1621b_test.c']	
+
 if GetDepend('RT_USING_CAN'):
     src += ['canapp.c']
 

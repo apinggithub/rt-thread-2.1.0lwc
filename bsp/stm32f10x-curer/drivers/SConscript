@@ -21,6 +21,9 @@ if GetDepend(['RT_USING_HWTIMER']):
 	
 if GetDepend(['RT_USING_HWBUTTON']):
     src += ['drv_hwbutton.c']	
+
+if GetDepend(['RT_USING_LCDHT1621B']):
+    src = src + ['drv_lcdht1621b.c']	
 	
 # add canbus driver.
 if GetDepend('RT_USING_CAN'):

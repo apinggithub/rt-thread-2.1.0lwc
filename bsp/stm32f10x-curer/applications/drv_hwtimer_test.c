@@ -23,7 +23,7 @@ int hwtimer(void)
     //int temp = 0;
     //uint8_t ch;
     
-    rt_hwtimer_t *timer;
+    rt_device_hwtimer_t *timer;
     
 #ifdef RT_USING_HWTIM6
     
@@ -37,7 +37,7 @@ int hwtimer(void)
         return -1;
     }
     
-    timer = (rt_hwtimer_t *)dev;  
+    timer = (rt_device_hwtimer_t *)dev;  
     timer->freq = freq;
     timer->prescaler = 71;
     timer->reload = 0;
@@ -125,7 +125,7 @@ EXIT_TIM6:
         return -1;
     }
     
-    timer = (rt_hwtimer_t *)dev;  
+    timer = (rt_device_hwtimer_t *)dev;  
     timer->freq = freq;
     timer->prescaler = 71;
     timer->reload = 0;
@@ -224,7 +224,7 @@ EXIT_TIM2:
         return -1;
     }
     
-    timer = (rt_hwtimer_t *)dev;  
+    timer = (rt_device_hwtimer_t *)dev;  
     timer->freq = freq;
     timer->prescaler = 71;
     timer->reload = 0;
@@ -296,7 +296,7 @@ EXIT_TIM3:
         return -1;
     }
     
-    timer = (rt_hwtimer_t *)dev;  
+    timer = (rt_device_hwtimer_t *)dev;  
     timer->freq = freq;
     timer->prescaler = 71;
     timer->reload = 0;

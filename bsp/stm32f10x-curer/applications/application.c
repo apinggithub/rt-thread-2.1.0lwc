@@ -51,13 +51,13 @@ static struct rt_thread led_thread;
 
 static struct rt_timer timer1;
 /*定时器超时函数*/
-rt_uint8_t led2sw = 0;
+//rt_uint8_t led2sw = 0;
 static void timeout1(void* parameter)
 {
 	//rt_kprintf("periodic timer is timeout\n");
 	
-	rt_pin_write(19, led2sw);
-	led2sw = (~led2sw)&0x01;
+	//rt_pin_write(19, led2sw);
+	//led2sw = (~led2sw)&0x01;
 	
 }
 static void led_thread_entry(void* parameter)
@@ -66,7 +66,7 @@ static void led_thread_entry(void* parameter)
     
     int rt_led_hw_init();
     
-	rt_pin_mode(19, PIN_MODE_OUTPUT);// the port PF7 
+	//rt_pin_mode(19, PIN_MODE_OUTPUT);// the port PA8 
 	
 	/* 初始化定时器*/
 	rt_timer_init(&timer1, "timer1", /* 定时器名为timer1 */

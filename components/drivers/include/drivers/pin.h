@@ -39,12 +39,20 @@ struct rt_device_pin
     const struct rt_pin_ops *ops;
 };
 
-#define PIN_LOW                 0x00
-#define PIN_HIGH                0x01
+enum rt_pin_stat
+{
+    PIN_LOW =   0x00,
+    PIN_HIGH =  0x01,
+};
 
-#define PIN_MODE_OUTPUT         0x00
-#define PIN_MODE_INPUT          0x01
-#define PIN_MODE_INPUT_PULLUP   0x02
+enum rt_pin_mode
+{    
+    PIN_MODE_OUTPUT =  0x00,
+    PIN_MODE_INPUT,  //0x01
+    PIN_MODE_INPUT_PULLUP, //0x02
+    PIN_MODE_INPUT_PULLDOWN,//0x03
+    PIN_MODE_TOGGLE, 
+};
 
 struct rt_device_pin_mode
 {

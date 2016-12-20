@@ -22,7 +22,7 @@
 #ifdef RT_USING_HWBUTTON
 
 
-static rt_err_t hw_button_port_init(rt_device_t dev)
+static rt_err_t drv_button_port_init(rt_device_t dev)
 {
     
     rt_device_button_t *button = (rt_device_button_t *)dev;
@@ -52,7 +52,7 @@ static rt_err_t hw_button_port_init(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t hw_button_port_read(rt_device_t dev)
+static rt_size_t drv_button_port_read(rt_device_t dev)
 {
     //rt_device_port_status_t *stat;
     rt_device_button_t *button = (rt_device_button_t *)dev;
@@ -170,10 +170,10 @@ static rt_size_t hw_button_port_read(rt_device_t dev)
 }
 
 
-const static rt_port_ops_t _hwbutton_port_ops =
+const static rt_button_port_ops_t _drv_button_port_ops =
 {
-    hw_button_port_init,   
-    hw_button_port_read,
+    drv_button_port_init,   
+    drv_button_port_read,
    
 };
 
@@ -181,7 +181,7 @@ int stm32_hw_button_init(void)
 {
     int result;
     
-    result = rt_device_button_register("button", &_hwbutton_port_ops, RT_NULL);
+    result = rt_device_button_register("button", &_drv_button_port_ops, RT_NULL);
     return result;
 }
 INIT_BOARD_EXPORT(stm32_hw_button_init);

@@ -19,11 +19,13 @@
 #include "tim.h"
 
 #ifdef RT_USING_HWTIMER
-static void timer_init(rt_hwtimer_t *timer, rt_uint32_t state)
+static void timer_init(rt_device_hwtimer_t *timer, rt_uint32_t state)
 {   
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
     TIM_MasterConfigTypeDef sMasterConfig;   
+    
+    RT_ASSERT(timer != RT_NULL);
     
     hwtim = (drv_hwtimer_t *)timer->parent.user_data;
     tim = hwtim->TimerHandle.Instance;        
@@ -251,11 +253,12 @@ static void timer_init(rt_hwtimer_t *timer, rt_uint32_t state)
     
 }
 
-static rt_err_t timer_start(rt_hwtimer_t *timer, rt_off_t pos)//, rt_hwtimer_mode_t opmode
+static rt_err_t timer_start(rt_device_hwtimer_t *timer, rt_off_t pos)//, rt_hwtimer_mode_t opmode
 {
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
     //uint16_t m;
+    RT_ASSERT(timer != RT_NULL);
     
     hwtim = (drv_hwtimer_t *)timer->parent.user_data;
     tim = hwtim->TimerHandle.Instance;
@@ -297,10 +300,12 @@ static rt_err_t timer_start(rt_hwtimer_t *timer, rt_off_t pos)//, rt_hwtimer_mod
     return RT_EOK;
 }
 
-static void timer_stop(rt_hwtimer_t *timer)
+static void timer_stop(rt_device_hwtimer_t *timer)
 {
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
+    
+    RT_ASSERT(timer != RT_NULL);
     
     hwtim = (drv_hwtimer_t *)timer->parent.user_data;
     tim = hwtim->TimerHandle.Instance;
@@ -310,12 +315,14 @@ static void timer_stop(rt_hwtimer_t *timer)
     HAL_TIM_Base_Stop(&(hwtim->TimerHandle));
 }
 
-static rt_err_t timer_ctrl(rt_hwtimer_t *timer, rt_uint32_t cmd, void *arg)
+static rt_err_t timer_ctrl(rt_device_hwtimer_t *timer, rt_uint32_t cmd, void *arg)
 {
     
     rt_err_t err = RT_EOK;
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
+    
+    RT_ASSERT(timer != RT_NULL);
     
     hwtim = (drv_hwtimer_t *)timer->parent.user_data;
     tim = hwtim->TimerHandle.Instance;
@@ -362,7 +369,7 @@ static rt_err_t timer_ctrl(rt_hwtimer_t *timer, rt_uint32_t cmd, void *arg)
     return err;
 }
 
-rt_err_t timer_set_prescaler(rt_hwtimer_t *timer,rt_uint32_t val)
+rt_err_t timer_set_prescaler(rt_device_hwtimer_t *timer,rt_uint32_t val)
 {
     rt_err_t err = RT_EOK;
     TIM_TypeDef *tim;
@@ -378,7 +385,7 @@ rt_err_t timer_set_prescaler(rt_hwtimer_t *timer,rt_uint32_t val)
 
    return err; 
 }
-static rt_uint32_t timer_get_counter(rt_hwtimer_t *timer)
+static rt_uint32_t timer_get_counter(rt_device_hwtimer_t *timer)
 {
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
@@ -394,7 +401,7 @@ static rt_uint32_t timer_get_counter(rt_hwtimer_t *timer)
     
     
 }
-static rt_err_t timer_set_counter(rt_hwtimer_t *timer,rt_uint32_t val)
+static rt_err_t timer_set_counter(rt_device_hwtimer_t *timer,rt_uint32_t val)
 {
     rt_err_t err = RT_EOK;
     TIM_TypeDef *tim;
@@ -410,7 +417,7 @@ static rt_err_t timer_set_counter(rt_hwtimer_t *timer,rt_uint32_t val)
     
     return err;
 }
-static rt_uint32_t timer_get_autoreload(rt_hwtimer_t *timer)
+static rt_uint32_t timer_get_autoreload(rt_device_hwtimer_t *timer)
 {
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
@@ -424,7 +431,7 @@ static rt_uint32_t timer_get_autoreload(rt_hwtimer_t *timer)
     
     return __HAL_TIM_GET_AUTORELOAD(&(hwtim->TimerHandle));
 }
-static rt_err_t timer_set_autoreload(rt_hwtimer_t *timer,rt_uint32_t val)
+static rt_err_t timer_set_autoreload(rt_device_hwtimer_t *timer,rt_uint32_t val)
 {
     rt_err_t err = RT_EOK;
     TIM_TypeDef *tim;
@@ -440,7 +447,7 @@ static rt_err_t timer_set_autoreload(rt_hwtimer_t *timer,rt_uint32_t val)
     
     return err;
 }
-static rt_uint32_t timer_get_compare(rt_hwtimer_t *timer,rt_uint8_t ch)
+static rt_uint32_t timer_get_compare(rt_device_hwtimer_t *timer,rt_uint8_t ch)
 {
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
@@ -454,7 +461,7 @@ static rt_uint32_t timer_get_compare(rt_hwtimer_t *timer,rt_uint8_t ch)
     
     return __HAL_TIM_GET_COMPARE(&(hwtim->TimerHandle),ch);
 }
-static rt_err_t timer_set_compare(rt_hwtimer_t *timer,rt_uint8_t ch,rt_uint32_t val)
+static rt_err_t timer_set_compare(rt_device_hwtimer_t *timer,rt_uint8_t ch,rt_uint32_t val)
 {
     rt_err_t err = RT_EOK;
     TIM_TypeDef *tim;
@@ -498,7 +505,7 @@ static const struct rt_hwtimer_ops _ops =
 
 #ifdef RT_USING_HWTIM6
 static drv_hwtimer_t hwtimer6;
-static rt_hwtimer_t rttimer6;
+static rt_device_hwtimer_t rttimer6;
 rt_uint8_t led3sw = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
@@ -514,7 +521,7 @@ void TIM6_IRQHandler(void)
 
 #ifdef RT_USING_HWTIM2
 static drv_hwtimer_t hwtimer2;
-static rt_hwtimer_t rttimer2;
+static rt_device_hwtimer_t rttimer2;
 void TIM2_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&(hwtimer2.TimerHandle));
@@ -523,7 +530,7 @@ void TIM2_IRQHandler(void)
 
 #ifdef RT_USING_HWTIM3
 static drv_hwtimer_t hwtimer3;
-static rt_hwtimer_t rttimer3;
+static rt_device_hwtimer_t rttimer3;
 void TIM3_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&(hwtimer3.TimerHandle));
@@ -532,7 +539,7 @@ void TIM3_IRQHandler(void)
 
 #ifdef RT_USING_HWTIM4
 static drv_hwtimer_t hwtimer4;
-static rt_hwtimer_t rttimer4;
+static rt_device_hwtimer_t rttimer4;
 void TIM4_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&(hwtimer4.TimerHandle));

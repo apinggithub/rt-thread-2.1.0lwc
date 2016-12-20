@@ -23,3 +23,8 @@ documentation/html
 *.d
 
 bsp/stm32f10x-curer/project.uvguix.Administrator
+bsp/stm32f10x-curer/DebugConfig/rtthread-stm32_STM32F103RE.dbgconf
+bsp/stm32f10x-curer/JLinkLog.txt
+bsp/stm32f10x-curer/project.uvguix.Jack
+bsp/stm32f10x-curer/project.uvoptx
+bsp/stm32f10x-curer/project.uvprojx

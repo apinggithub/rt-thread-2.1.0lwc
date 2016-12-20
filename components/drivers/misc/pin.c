@@ -69,7 +69,8 @@ static rt_err_t  _pin_control(rt_device_t dev, rt_uint8_t cmd, void *args)
     RT_ASSERT(pin != RT_NULL);
 
     mode = (struct rt_device_pin_mode *) args;
-    if (mode == RT_NULL) return -RT_ERROR;
+    if (mode == RT_NULL) 
+        return -RT_ERROR;
 
     pin->ops->pin_mode(dev, (rt_base_t)mode->pin, (rt_base_t)mode->mode);
 

@@ -24,8 +24,9 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
+#include <drivers/hwtimer.h>
 
-rt_inline rt_uint32_t timeout_calc(rt_hwtimer_t *timer, rt_hwtimerval_t *tv)
+rt_inline rt_uint32_t timeout_calc(rt_device_hwtimer_t *timer, rt_hwtimerval_t *tv)
 {
 
     timer->cycles = tv->sec * timer->freq;
@@ -37,9 +38,9 @@ extern rt_uint32_t SystemCoreClock;
 static rt_err_t rt_hwtimer_init(struct rt_device *dev)
 {
     rt_err_t result = RT_EOK;
-    rt_hwtimer_t *timer;
+    rt_device_hwtimer_t *timer;
 
-    timer = (rt_hwtimer_t *)dev;   
+    timer = (rt_device_hwtimer_t *)dev;   
     
     RT_ASSERT(timer->freq != 0);
     
@@ -89,9 +90,9 @@ static rt_err_t rt_hwtimer_init(struct rt_device *dev)
 static rt_err_t rt_hwtimer_open(struct rt_device *dev, rt_uint16_t oflag)
 {
     rt_err_t result = RT_EOK;
-    rt_hwtimer_t *timer;
+    rt_device_hwtimer_t *timer;
 
-    timer = (rt_hwtimer_t *)dev;
+    timer = (rt_device_hwtimer_t *)dev;
     if (timer->ops->control != RT_NULL)
     {
         timer->ops->control(timer, HWTIMER_CTRL_SET_FREQ, &timer->freq);
@@ -107,9 +108,9 @@ static rt_err_t rt_hwtimer_open(struct rt_device *dev, rt_uint16_t oflag)
 static rt_err_t rt_hwtimer_close(struct rt_device *dev)
 {
     rt_err_t result = RT_EOK;
-    rt_hwtimer_t *timer;
+    rt_device_hwtimer_t *timer;
 
-    timer = (rt_hwtimer_t*)dev;
+    timer = (rt_device_hwtimer_t*)dev;
     if (timer->ops->init != RT_NULL)
     {
         timer->ops->init(timer, 0);
@@ -127,11 +128,11 @@ static rt_err_t rt_hwtimer_close(struct rt_device *dev)
 
 static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
-    rt_hwtimer_t *timer;
+    rt_device_hwtimer_t *timer;
     rt_hwtimerval_t tv;
     rt_uint32_t cnt;
 
-    timer = (rt_hwtimer_t *)dev;
+    timer = (rt_device_hwtimer_t *)dev;
     if (timer->ops->get_counter == RT_NULL)
         return 0;
 
@@ -155,9 +156,9 @@ static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const voi
 {
     //rt_uint32_t cycles;
     //rt_hwtimer_mode_t opm = HWTIMER_MODE_PERIOD;
-    rt_hwtimer_t *timer;
+    rt_device_hwtimer_t *timer;
 
-    timer = (rt_hwtimer_t *)dev;
+    timer = (rt_device_hwtimer_t *)dev;
     if ((timer->ops->start == RT_NULL) || (timer->ops->stop == RT_NULL))
         return 0;
 
@@ -183,9 +184,9 @@ static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const voi
 static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *args)
 {
     rt_err_t result = RT_EOK;
-    rt_hwtimer_t *timer;
+    rt_device_hwtimer_t *timer;
 
-    timer = (rt_hwtimer_t *)dev;
+    timer = (rt_device_hwtimer_t *)dev;
 
     switch (cmd)
     {
@@ -352,7 +353,7 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
     return result;
 }
 
-void rt_device_hwtimer_isr(rt_hwtimer_t *timer)
+void rt_device_hwtimer_isr(rt_device_hwtimer_t *timer)
 {
     RT_ASSERT(timer != RT_NULL);
 
@@ -376,7 +377,7 @@ void rt_device_hwtimer_isr(rt_hwtimer_t *timer)
     }
 }
 
-rt_err_t rt_device_hwtimer_register(rt_hwtimer_t *timer, const char *name, void *user_data)
+rt_err_t rt_device_hwtimer_register(rt_device_hwtimer_t *timer, const char *name, void *user_data)
 {
     struct rt_device *device;
 

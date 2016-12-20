@@ -22,8 +22,8 @@
  * 2015-01-20     Bernard      the first version
  */
 
-#ifndef HW_BUTTON_H__
-#define HW_BUTTON_H__
+#ifndef LCD_HT1621B_H__
+#define LCD_HT1621B_H__
 
 #include <rtthread.h>
 #include <rtdevice.h>
@@ -33,28 +33,37 @@ extern "C" {
 #endif
 
 /* button device and operations for RT-Thread */
-typedef struct rt_device_button
+typedef struct rt_device_lcdht1621b
 {
     struct rt_device parent;
-    const struct rt_button_port_ops *ops;
-}rt_device_button_t;
+    const struct rt_lcdht_ops *ops;
+    
+}rt_device_lcdht_t;
 
+typedef struct rt_lcdth_ramdat
+{
+    uint8_t segno;  /*segement no.*/
+    uint8_t dat;    /*port data*/
+    
+}rt_lcdth_ramdat_t;
 
-typedef struct rt_button_port_ops
-{       
+typedef struct rt_lcdht_ops
+{   
+    /*the APIs for low driver*/
     rt_err_t (*drv_init)(rt_device_t dev);    
-    rt_size_t (*drv_read)(rt_device_t dev);    
+    rt_size_t (*drv_write)(rt_device_t dev, const void *buffer, rt_size_t size);  
+    rt_err_t (*drv_control)(rt_device_t dev, rt_uint8_t cmd, void *args);
     /* TODO: add GPIO interrupt */
-}rt_button_port_ops_t;
+}rt_lcdht_ops_t;
 
-int rt_device_button_register(const char *name, const rt_button_port_ops_t *ops, void *user_data);
+int rt_device_lcdht_register(const char *name, const rt_lcdht_ops_t *ops, void *user_data);
 
 /* RT-Thread Hardware button APIs */
 //void rt_port_mode(rt_base_t port, rt_base_t mode);
 //void rt_port_write(rt_base_t port, rt_base_t value);
 //int  rt_port_read(rt_base_t port);
 
-int  rt_port_read(void);
+//int  rt_port_read(void);
 
 #ifdef __cplusplus
 }

@@ -20,7 +20,7 @@
 
 #ifdef RT_USING_PIN
 
-#define STM32F10X_PIN_NUMBERS 144 //[ 64, 100, 144 ]
+/* RT_USING_PIN_NUMBERS defined in rtconfig.h */
 
 #define __STM32_PIN(index, /*rcc,*/ x, pin_index) { 0, /*RCC_##rcc##Periph_GPIO##gpio,*/ GPIO##x, GPIO_PIN_##pin_index}
 #define __STM32_PIN_DEFAULT {-1, /*0,*/ 0, 0}
@@ -36,7 +36,7 @@ struct pin_index
 
 static const struct pin_index pins[] =
 {
-#if (STM32F10X_PIN_NUMBERS == 64)
+#if (RT_USING_PIN_NUMBERS == 64)
     __STM32_PIN_DEFAULT,
     __STM32_PIN_DEFAULT,
     __STM32_PIN(2, /*APB2,*/ C, 13),
@@ -103,7 +103,7 @@ static const struct pin_index pins[] =
     __STM32_PIN_DEFAULT,
     __STM32_PIN_DEFAULT,
 #endif
-#if (STM32F10X_PIN_NUMBERS == 100)
+#if (RT_USING_PIN_NUMBERS == 100)
     __STM32_PIN_DEFAULT,
     __STM32_PIN(1, /*APB2,*/ E, 2),
     __STM32_PIN(2, /*APB2,*/ E, 3),
@@ -206,7 +206,7 @@ static const struct pin_index pins[] =
     __STM32_PIN_DEFAULT,
     __STM32_PIN_DEFAULT,
 #endif
-#if (STM32F10X_PIN_NUMBERS == 144)
+#if (RT_USING_PIN_NUMBERS == 144)
     __STM32_PIN_DEFAULT,
     __STM32_PIN(1, /*APB2,*/ E, 2),
     __STM32_PIN(2, /*APB2,*/ E, 3),
@@ -388,13 +388,12 @@ static void stm32_pin_write(rt_device_t dev, rt_base_t pin, rt_base_t value)
 
     if (value == PIN_LOW)
     {
-        //GPIO_ResetBits(index->gpio, index->pin);
-				HAL_GPIO_WritePin(index->gpio, index->pin, GPIO_PIN_RESET);
+
+        HAL_GPIO_WritePin(index->gpio, index->pin, GPIO_PIN_RESET);
     }
     else
     {
-        //GPIO_SetBits(index->gpio, index->pin);
-				HAL_GPIO_WritePin(index->gpio, index->pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(index->gpio, index->pin, GPIO_PIN_SET);
     }
 }
 
@@ -411,8 +410,8 @@ static int stm32_pin_read(rt_device_t dev, rt_base_t pin)
         return value;
     }
 
-    //if (GPIO_ReadInputDataBit(index->gpio, index->pin) == Bit_RESET)
-		if(HAL_GPIO_ReadPin(index->gpio, index->pin)  == RESET)
+    
+    if(HAL_GPIO_ReadPin(index->gpio, index->pin)  == RESET)
     {
         value = PIN_LOW;
     }
@@ -423,6 +422,34 @@ static int stm32_pin_read(rt_device_t dev, rt_base_t pin)
 
     return value;
 }
+/*
+static int stm32_pin_toggle(rt_device_t dev, rt_base_t pin)
+{
+    int value;
+    const struct pin_index *index;
+
+    value = PIN_LOW;
+
+    index = get_pin(pin);
+    if (index == RT_NULL)
+    {
+        return value;
+    }
+    else
+    {
+        HAL_GPIO_TogglePin(index->gpio, index->pin);
+        if(HAL_GPIO_ReadPin(index->gpio, index->pin)  == RESET)
+        {
+            value = PIN_LOW;
+        }
+        else
+        {
+            value = PIN_HIGH;
+        }        
+    }
+    return value;   
+}*/
+
 static void RCC_APB2PeriphClockCmd(GPIO_TypeDef *gpio, FunctionalState NewState)
 {
   /* Check the parameters */
@@ -432,7 +459,7 @@ static void RCC_APB2PeriphClockCmd(GPIO_TypeDef *gpio, FunctionalState NewState)
   if (NewState != DISABLE)
   {
     //RCC->APB2ENR |= RCC_APB2Periph;
-#if (STM32F10X_PIN_NUMBERS == 64)
+#if (RT_USING_PIN_NUMBERS == 64)
 		if(GPIOA == gpio)		
 				__HAL_RCC_GPIOA_CLK_ENABLE();
 		if(GPIOB == gpio)			
@@ -442,11 +469,11 @@ static void RCC_APB2PeriphClockCmd(GPIO_TypeDef *gpio, FunctionalState NewState)
 		if(GPIOD == gpio)
 				__HAL_RCC_GPIOD_CLK_ENABLE();
 #endif
-#if (STM32F10X_PIN_NUMBERS == 100)
+#if (RT_USING_PIN_NUMBERS == 100)
 		if(GPIOE == gpio)		
 				__HAL_RCC_GPIOE_CLK_ENABLE();
 #endif		
-#if (STM32F10X_PIN_NUMBERS == 144)
+#if (RT_USING_PIN_NUMBERS == 144)
 		if(GPIOF == gpio)		
 				__HAL_RCC_GPIOF_CLK_ENABLE();
 		if(GPIOG == gpio)		
@@ -456,7 +483,7 @@ static void RCC_APB2PeriphClockCmd(GPIO_TypeDef *gpio, FunctionalState NewState)
   else
   {
     //RCC->APB2ENR &= ~RCC_APB2Periph;	
-#if (STM32F10X_PIN_NUMBERS == 64)		
+#if (RT_USING_PIN_NUMBERS == 64)		
 		if(GPIOA == gpio)		
 				__HAL_RCC_GPIOA_CLK_DISABLE();
 		else if(GPIOB == gpio)			
@@ -466,11 +493,11 @@ static void RCC_APB2PeriphClockCmd(GPIO_TypeDef *gpio, FunctionalState NewState)
 		else if(GPIOD == gpio)
 				__HAL_RCC_GPIOD_CLK_DISABLE();
 #endif			
-#if (STM32F10X_PIN_NUMBERS == 100)
+#if (RT_USING_PIN_NUMBERS == 100)
 		if(GPIOE == gpio)		
 				__HAL_RCC_GPIOE_CLK_DISABLE();
 #endif		
-#if (STM32F10X_PIN_NUMBERS == 144)
+#if (RT_USING_PIN_NUMBERS == 144)
 		if(GPIOF == gpio)		
 				__HAL_RCC_GPIOF_CLK_DISABLE();
 		if(GPIOG == gpio)		
@@ -515,10 +542,14 @@ void stm32_pin_mode(rt_device_t dev, rt_base_t pin, rt_base_t mode)
         //GPIO_InitStructure.Mode  = GPIO_Mode_IPU;
 				GPIO_InitStructure.Pull = GPIO_PULLUP;
     }
+    if (mode == PIN_MODE_INPUT_PULLUP)
+    {
+       GPIO_InitStructure.Pull = GPIO_PULLDOWN;
+    }
     else
     {
         /* input setting:default. */
-        GPIO_InitStructure.Pull = GPIO_PULLDOWN;
+       
     }
     HAL_GPIO_Init(index->gpio, &GPIO_InitStructure);
 }

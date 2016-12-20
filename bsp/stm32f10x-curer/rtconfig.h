@@ -26,6 +26,10 @@
 
 /* Using hardware button */
  #define RT_USING_HWBUTTON 
+ 
+ /* Using lcd ht1621b */
+ #define RT_USING_LCDHT1621B 
+ 
 
 /* Using Software Timer */
 /* #define RT_USING_TIMER_SOFT */
@@ -84,6 +88,7 @@
 
 /*Using Pin select as device*/
 #define RT_USING_PIN
+#define RT_USING_PIN_NUMBERS        144 /*[ 64, 100, 144 ] */
 
 /* SECTION: Console options */
 #define RT_USING_CONSOLE

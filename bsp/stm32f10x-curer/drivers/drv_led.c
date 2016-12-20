@@ -42,14 +42,14 @@ int rt_led_hw_init(void)
    GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOF_CLK_ENABLE();
+  RCC_GPIO_LED1_CLK_ENABLE();
 
-  /* Configure GPIO pin: PI1 (LD1) */
-  GPIO_InitStruct.Pin   = GPIO_PIN_6;
+  /* Configure GPIO pin: PA8 (LD1) */
+  GPIO_InitStruct.Pin   = GPIO_PIN_LED1;
   GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull  = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIO_PORT_LED1, &GPIO_InitStruct);
   return 0;
 }
 INIT_BOARD_EXPORT(rt_led_hw_init);

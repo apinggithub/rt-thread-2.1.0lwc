@@ -54,33 +54,8 @@ typedef struct rt_hwtimercnt
 #define HWTIMER_CNTMODE_UP      0x01 /* increment count mode */
 #define HWTIMER_CNTMODE_DW      0x02 /* decreasing count mode */
 
-struct rt_hwtimer_device;
 
-struct rt_hwtimer_ops
-{
-    void (*init)(struct rt_hwtimer_device *timer, rt_uint32_t state);
-    rt_err_t (*start)(struct rt_hwtimer_device *timer, rt_off_t pos);
-    void (*stop)(struct rt_hwtimer_device *timer);
-    rt_err_t (*set_prescaler)(struct rt_hwtimer_device *timer,rt_uint32_t val);
-    rt_uint32_t (*get_counter)(struct rt_hwtimer_device *timer);
-    rt_err_t (*set_counter)(struct rt_hwtimer_device *timer,rt_uint32_t val);
-    rt_uint32_t (*get_autoreload)(struct rt_hwtimer_device *timer);
-    rt_err_t (*set_autoreload)(struct rt_hwtimer_device *timer,rt_uint32_t val);
-    rt_uint32_t (*get_compare)(struct rt_hwtimer_device *timer,rt_uint8_t ch);
-    rt_err_t (*set_compare)(struct rt_hwtimer_device *timer,rt_uint8_t ch,rt_uint32_t val);
-    rt_err_t (*control)(struct rt_hwtimer_device *timer, rt_uint32_t cmd, void *args);
-};
-
-/* Timer Feature Information */
-struct rt_hwtimer_info
-{
-    rt_uint32_t maxfreq;    /* the maximum count frequency timer support */
-    rt_uint32_t minfreq;    /* the minimum count frequency timer support */
-    rt_uint32_t maxcnt;    /* counter maximum value */
-    rt_uint8_t  cntmode;   /* count mode (inc/dec) */
-};
-
-typedef struct rt_hwtimer_device
+typedef struct rt_device_hwtimer
 {
     struct rt_device parent;
     const struct rt_hwtimer_ops *ops;
@@ -98,10 +73,36 @@ typedef struct rt_hwtimer_device
     rt_int32_t cycles;              /* how many times will generate a timeout event after overflow */
     
     //rt_hwtimer_mode_t mode;         /* timing mode(oneshot/period) */
-} rt_hwtimer_t;
+} rt_device_hwtimer_t;
 
-rt_err_t rt_device_hwtimer_register(rt_hwtimer_t *timer, const char *name, void *user_data);
-void rt_device_hwtimer_isr(rt_hwtimer_t *timer);
+struct rt_hwtimer_ops
+{
+    void (*init)( rt_device_hwtimer_t *timer, rt_uint32_t state);
+    rt_err_t (*start)(rt_device_hwtimer_t *timer, rt_off_t pos);
+    void (*stop)(rt_device_hwtimer_t *timer);
+    rt_err_t (*set_prescaler)(rt_device_hwtimer_t *timer,rt_uint32_t val);
+    rt_uint32_t (*get_counter)(rt_device_hwtimer_t *timer);
+    rt_err_t (*set_counter)(rt_device_hwtimer_t *timer,rt_uint32_t val);
+    rt_uint32_t (*get_autoreload)(rt_device_hwtimer_t *timer);
+    rt_err_t (*set_autoreload)(rt_device_hwtimer_t *timer,rt_uint32_t val);
+    rt_uint32_t (*get_compare)(rt_device_hwtimer_t *timer,rt_uint8_t ch);
+    rt_err_t (*set_compare)(rt_device_hwtimer_t *timer,rt_uint8_t ch,rt_uint32_t val);
+    rt_err_t (*control)(rt_device_hwtimer_t *timer, rt_uint32_t cmd, void *args);
+};
+
+/* Timer Feature Information */
+struct rt_hwtimer_info
+{
+    rt_uint32_t maxfreq;    /* the maximum count frequency timer support */
+    rt_uint32_t minfreq;    /* the minimum count frequency timer support */
+    rt_uint32_t maxcnt;    /* counter maximum value */
+    rt_uint8_t  cntmode;   /* count mode (inc/dec) */
+};
+
+
+
+rt_err_t rt_device_hwtimer_register(rt_device_hwtimer_t *timer, const char *name, void *user_data);
+void rt_device_hwtimer_isr(rt_device_hwtimer_t *timer);
 
 #ifdef __cplusplus
 }
