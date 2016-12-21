@@ -22,7 +22,7 @@
 #ifdef RT_USING_XT8XXP8
 
 
-#if 0
+
 static void rt_hw_us_delay(int us)
 {
     rt_uint32_t delta;
@@ -44,7 +44,7 @@ static void rt_hw_us_delay(int us)
         current_delay = SysTick->LOAD + delta - SysTick->VAL;
     } while( current_delay < us );
 }
-
+#if 0
 __asm void wait() 
 { 
     nop 
@@ -63,6 +63,7 @@ __asm void wait()
 /*发送单字节，低位在前*/
 static void XTP_SendBitLsb(uint8_t dat)
 {
+#ifdef RT_USING_XTP_ONE_WRIRE   
     XTP_DAT_L();/*data lin set low about 5ms to wakeup voice IC*/
     rt_thread_delay(RT_TICK_PER_SECOND*5/1000);
     
@@ -93,6 +94,29 @@ static void XTP_SendBitLsb(uint8_t dat)
        
     }
     XTP_DAT_H();
+    
+#else
+    
+    XTP_DAT_H();//data pin
+    XTP_CLK_H();//clock pin    
+    rt_thread_delay(RT_TICK_PER_SECOND*5/1000);  //5ms
+    //rt_thread_delay(RT_TICK_PER_SECOND*5/1000); 
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        (dat & 0x01) ? XTP_DAT_H(): XTP_DAT_L(); 
+        //rt_thread_delay(RT_TICK_PER_SECOND/1000); //1ms
+        //rt_hw_us_delay(100);       
+        XTP_CLK_L();
+        //rt_thread_delay(RT_TICK_PER_SECOND/1000);//1ms   
+        rt_hw_us_delay(100);
+        XTP_CLK_H();
+        //rt_thread_delay(RT_TICK_PER_SECOND/1000); //1ms
+        rt_hw_us_delay(100);        
+        dat >>= 1;      
+    }
+    XTP_DAT_H(); 
+    XTP_CLK_H();   
+#endif    
 }
 
   
@@ -108,15 +132,25 @@ static rt_err_t drv_xtp_init(rt_device_t dev)
 
     /* GPIO Ports Clock Enable */
     __HAL_RCC_GPIOC_CLK_ENABLE();
-  
-    /*Configure GPIO pins : PC10 */
-    
+
+#ifdef RT_USING_XTP_ONE_WRIRE    
+    /*Configure GPIO pins : PC10 ---> chip data in single wire mode */    
     GPIO_InitStruct.Pin = GPIO_PIN_10; /*PC10 the voice chip data*/
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-        
+#else
+    /*Configure GPIO pins : PC11 PC12 
+    PC11 ---> the voice chip data 
+    PC12 ---> the voice chip clock 
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12; 
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+#endif       
     return RT_EOK;
 }
 

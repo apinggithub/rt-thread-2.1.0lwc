@@ -32,9 +32,10 @@
  #define RT_USING_LCDHT1621B 
  #define RT_USING_LCDHT1621B_TEST /*the segment lcd  driver chip ht1621b test cmd in finsh*/ 
  
- /* Using voice chip xt814p8 */
+ /* Using voice chip xt8xxp8 */
  #define RT_USING_XT8XXP8
  #define RT_USING_XT8XXP8_TEST /*the voice chip driver test cmd in finsh*/ 
+ //#define RT_USING_XTP_ONE_WRIRE /* single wire mode*/
  
 
 /* Using Software Timer */

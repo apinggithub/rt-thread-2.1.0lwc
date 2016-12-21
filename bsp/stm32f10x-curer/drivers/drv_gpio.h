@@ -17,15 +17,15 @@
 #include <stdint.h> 
 #include <drivers/pin.h>
 
-struct stm32_hw_pin_app
+typedef struct stm32_hw_pin
 {
-    int pin;
+    int pin; /* the pin NO. on the chip*/
     uint32_t mode;
-};
+}stm32_hw_pin_t;
 
 #define PIN_USERDATA_END {-1,0}
 
-extern struct stm32_hw_pin_app stm32_pins[];
+extern  stm32_hw_pin_t pins_app[];
 
 int stm32_hw_pin_init(void);
 
