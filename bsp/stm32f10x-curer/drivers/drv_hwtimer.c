@@ -604,10 +604,10 @@ int stm32_hwtimer_init(void)
     
     hwtimer4.TimerHandle.Instance = TIM4;       
     rt_device_hwtimer_register(&rttimer4, "timer4", &hwtimer4);    
-#endif /*RT_USING_HWTIM2*/  
+#endif /*RT_USING_HWTIM4*/  
     
     return 0;
 }
 
 INIT_BOARD_EXPORT(stm32_hwtimer_init);
-#endif
+#endif /* RT_USING_HWTIMER */

@@ -5,7 +5,7 @@
 #include <drivers/lcdht1621b.h>
 #include <drv_lcdht1621b.h>
 
-#ifdef RT_USING_LCDHT1621B
+#ifdef RT_USING_LCDHT1621B_TEST
 
 int lcdht(void)
 {
@@ -15,8 +15,7 @@ int lcdht(void)
     
     rt_lcdth_ramdat_t val;
     //uint8_t tm = 0;  
-
-    enum lcdcmd;
+    
      
     #define LCD   "lcdht"
        
@@ -102,4 +101,4 @@ int lcdht(void)
 
 }
 FINSH_FUNCTION_EXPORT(lcdht, Test Seg lcd ht1621b);
-#endif
+#endif /* RT_USING_LCDHT1621B_TEST */

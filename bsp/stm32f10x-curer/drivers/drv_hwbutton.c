@@ -21,8 +21,7 @@
 
 #ifdef RT_USING_HWBUTTON
 
-
-static rt_err_t drv_button_port_init(rt_device_t dev)
+static rt_err_t drv_button_init(rt_device_t dev)
 {
     
     rt_device_button_t *button = (rt_device_button_t *)dev;
@@ -43,7 +42,7 @@ static rt_err_t drv_button_port_init(rt_device_t dev)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
     
-    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_5;/*PC4 PC5*/
+    GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;/*PC4 PC5*/
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -52,25 +51,16 @@ static rt_err_t drv_button_port_init(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t drv_button_port_read(rt_device_t dev)
+static rt_uint8_t drv_button_process(void)
 {
-    //rt_device_port_status_t *stat;
-    rt_device_button_t *button = (rt_device_button_t *)dev;
-    
     rt_uint8_t rcv = 0,val = 0;
     
-    /* check parameters */
-    RT_ASSERT(button != RT_NULL);
-    
-    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_11,GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_4,GPIO_PIN_SET);
      
     HAL_GPIO_WritePin(GPIOC,GPIO_PIN_5,GPIO_PIN_SET);
     
     //rt_thread_delay(RT_TICK_PER_SECOND/100);
-       
-    //rt_pin_write(44, PIN_HIGH);
-    //rt_pin_write(45, PIN_HIGH);
-    
+          
     rcv = (uint8_t)((~GPIOC->IDR)&0x0f);   
     if(rcv != 0)  
     {          
@@ -102,7 +92,7 @@ static rt_size_t drv_button_port_read(rt_device_t dev)
     }
     else
     {
-        HAL_GPIO_WritePin(GPIOC,GPIO_PIN_11,GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOC,GPIO_PIN_4,GPIO_PIN_RESET);
         rcv = (uint8_t)((~GPIOC->IDR)&0x0f);
         if(rcv!= 0)  
         {
@@ -168,12 +158,41 @@ static rt_size_t drv_button_port_read(rt_device_t dev)
     }   
     return val;
 }
-
-
-const static rt_button_port_ops_t _drv_button_port_ops =
+static rt_size_t drv_button_read(rt_device_t dev)
 {
-    drv_button_port_init,   
-    drv_button_port_read,
+    rt_device_button_t *button = (rt_device_button_t *)dev;
+    
+    rt_uint8_t rcv = 0;
+    
+    /* check parameters */
+    RT_ASSERT(button != RT_NULL);
+    
+    if( (rcv = drv_button_process()) != 0)/* button pressed */
+    {
+          
+        rt_thread_delay(RT_TICK_PER_SECOND/10);
+        if( drv_button_process() != rcv)/*if the button is not same twice*/
+        {
+            rcv = 0;            
+        }
+        else /* the button is same twice,and wait the button release  */
+        {
+            
+            while(drv_button_process() != 0)
+            {
+                rt_thread_delay(RT_TICK_PER_SECOND/100);
+            }
+           
+            
+        }
+    }      
+    return rcv;
+}
+
+const static rt_button_ops_t _drv_button_ops =
+{
+    drv_button_init,   
+    drv_button_read,
    
 };
 
@@ -181,7 +200,7 @@ int stm32_hw_button_init(void)
 {
     int result;
     
-    result = rt_device_button_register("button", &_drv_button_port_ops, RT_NULL);
+    result = rt_device_button_register("button", &_drv_button_ops, RT_NULL);
     return result;
 }
 INIT_BOARD_EXPORT(stm32_hw_button_init);

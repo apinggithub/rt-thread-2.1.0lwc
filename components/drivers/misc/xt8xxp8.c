@@ -21,62 +21,62 @@
  * Date           Author       Notes
  * 2015-01-20     Bernard      the first version
  */
-
-#include <drivers/hwbutton.h>
+ 
+#include <rtthread.h>
+#include <rtdevice.h>
+#include <drivers/xt8xxp8.h>
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
 #endif
 
-static rt_device_button_t _hw_button;
+static rt_device_xtp_t _xtp;
 
-static rt_err_t rt_hwbutton_init(rt_device_t dev)
+static rt_err_t rt_xtp_init(rt_device_t dev)
 {
     rt_err_t err = RT_EOK;
-    rt_device_button_t *button = (rt_device_button_t *)dev;
+    rt_device_xtp_t *xtp = (rt_device_xtp_t *)dev;
 
     /* check parameters */
-    RT_ASSERT(button != RT_NULL);
+    RT_ASSERT(xtp != RT_NULL);
 
-    err = button->ops->drv_init(dev);
+    err = xtp->ops->drv_init(dev);
     return err;
 }
 
-static rt_size_t rt_hwbutton_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_size_t rt_xtp_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
-    //rt_device_port_status_t *stat;
-    rt_uint8_t *pbuf;
-    rt_device_button_t *button = (rt_device_button_t *)dev;
+
+    rt_device_xtp_t *xtp = (rt_device_xtp_t *)dev;
 
     /* check parameters */
-    RT_ASSERT(button != RT_NULL);
+    RT_ASSERT(xtp != RT_NULL);
+    
+    RT_ASSERT(buffer != RT_NULL);
 
-    pbuf = (rt_uint8_t *) buffer;
-    if (pbuf == RT_NULL || size != sizeof(*pbuf)) 
-        return 0;
-
-    *pbuf = button->ops->drv_read(dev);
-    return size;
+    return  xtp->ops->drv_write(dev,buffer,size);
+    
 }
 
-int rt_device_button_register(const char *name, const rt_button_ops_t *ops, void *user_data)
+
+int rt_device_xtp_register(const char *name, const rt_xtp_ops_t *ops, void *user_data)
 {
-    _hw_button.parent.type         = RT_Device_Class_Miscellaneous;
-    _hw_button.parent.rx_indicate  = RT_NULL;
-    _hw_button.parent.tx_complete  = RT_NULL;
+    _xtp.parent.type         = RT_Device_Class_Miscellaneous;
+    _xtp.parent.rx_indicate  = RT_NULL;
+    _xtp.parent.tx_complete  = RT_NULL;
 
-    _hw_button.parent.init         = rt_hwbutton_init;
-    _hw_button.parent.open         = RT_NULL;
-    _hw_button.parent.close        = RT_NULL;
-    _hw_button.parent.read         = rt_hwbutton_read;
-    _hw_button.parent.write        = RT_NULL;//_port_write;
-    _hw_button.parent.control      = RT_NULL;//_port_control;
+    _xtp.parent.init         = rt_xtp_init;
+    _xtp.parent.open         = RT_NULL;
+    _xtp.parent.close        = RT_NULL;
+    _xtp.parent.read         = RT_NULL;
+    _xtp.parent.write        = rt_xtp_write;
+    _xtp.parent.control      = RT_NULL;
 
-    _hw_button.ops                 = ops;
-    _hw_button.parent.user_data    = user_data;
+    _xtp.ops                 = ops;
+    _xtp.parent.user_data    = user_data;
 
     /* register a character device */
-    rt_device_register(&_hw_button.parent, name, RT_DEVICE_FLAG_RDWR);
+    rt_device_register(&_xtp.parent, name, RT_DEVICE_FLAG_RDWR);
 
     return 0;
 }
@@ -104,4 +104,5 @@ int  rt_port_read(rt_base_t port)
 }
 //FINSH_FUNCTION_EXPORT_ALIAS(rt_port_read, portRead, read status from hardware port);
 #endif
+
 

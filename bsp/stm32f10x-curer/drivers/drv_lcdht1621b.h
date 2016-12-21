@@ -11,8 +11,8 @@
  * Date           Author       Notes
  * 2015-01-05     Bernard      the first version
  */
-#ifndef DRV_HWBUTTON_H__
-#define DRV_HWBUTTON_H__
+#ifndef DRV_LCDHT1621B_H__
+#define DRV_LCDHT1621B_H__
  
 #include <stdint.h> 
 #include <drivers/lcdht1621b.h>

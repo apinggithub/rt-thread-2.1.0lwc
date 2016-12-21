@@ -570,4 +570,4 @@ int stm32_hw_pin_init(void)
 }
 INIT_BOARD_EXPORT(stm32_hw_pin_init);
 
-#endif
+#endif /* RT_USING_PIN */

@@ -26,9 +26,15 @@
 
 /* Using hardware button */
  #define RT_USING_HWBUTTON 
+ #define RT_USING_HWBUTTON_TEST /*the button driver test cmd in finsh*/ 
  
- /* Using lcd ht1621b */
+ /* Using segment lcd ht1621b */
  #define RT_USING_LCDHT1621B 
+ #define RT_USING_LCDHT1621B_TEST /*the segment lcd  driver chip ht1621b test cmd in finsh*/ 
+ 
+ /* Using voice chip xt814p8 */
+ #define RT_USING_XT8XXP8
+ #define RT_USING_XT8XXP8_TEST /*the voice chip driver test cmd in finsh*/ 
  
 
 /* Using Software Timer */
@@ -36,6 +42,8 @@
 
 /* Using independent hardware Timer */
 #define RT_USING_HWTIMER  /*hardware timer driver switch*/
+#define RT_USING_HWTIMER_TEST  /*hardware timer driver test cmd in finsh*/
+
 //#define RT_USING_HWTIM6 /*the base hardtimer TIM6*/
 //#define RT_USING_HWTIM2   /*the general hardtimer TIM2*/
 #define RT_USING_HWTIM3   /*the general hardtimer TIM2*/

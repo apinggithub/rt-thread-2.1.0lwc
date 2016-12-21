@@ -151,8 +151,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     /**TIM2 GPIO Configuration    
     PA0-WKUP     ------> TIM2_CH1
     PA1     ------> TIM2_CH2
-    PB10     ------> TIM2_CH3
-    PB11     ------> TIM2_CH4 
+    PA2     ------> TIM2_CH3
+    PA3     ------> TIM2_CH4 
     */
       
     __HAL_RCC_GPIOA_CLK_ENABLE();  
@@ -161,22 +161,22 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-             
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-      
-    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-    
-    __HAL_AFIO_REMAP_TIM2_PARTIAL_2(); 
-    
-    #if 0 
+       
     GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+      
+    #if 0     
+    __HAL_RCC_GPIOB_CLK_ENABLE();      
+    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);   
+    __HAL_AFIO_REMAP_TIM2_PARTIAL_2(); 
     #endif
+    
+   
    }  
 #endif /* RT_USING_HWTIM2 */ 
 

@@ -178,7 +178,7 @@
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -441,6 +441,11 @@
               <FileType>1</FileType>
               <FilePath>applications\drv_lcdht1621b_test.c</FilePath>
             </File>
+            <File>
+              <FileName>drv_xt8xxp8_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\drv_xt8xxp8_test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -490,6 +495,11 @@
               <FileName>drv_lcdht1621b.c</FileName>
               <FileType>1</FileType>
               <FilePath>drivers\drv_lcdht1621b.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_xt8xxp8.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>drivers\drv_xt8xxp8.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -855,6 +865,11 @@
               <FileName>lcdht1621b.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\components\drivers\misc\lcdht1621b.c</FilePath>
+            </File>
+            <File>
+              <FileName>xt8xxp8.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\components\drivers\misc\xt8xxp8.c</FilePath>
             </File>
             <File>
               <FileName>serial.c</FileName>

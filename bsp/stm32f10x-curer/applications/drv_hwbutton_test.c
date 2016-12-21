@@ -3,7 +3,7 @@
 #include <finsh.h>
 #include <stdio.h>
 
-#ifdef RT_USING_HWBUTTON
+#ifdef RT_USING_HWBUTTON_TEST
 
 int hwbutton(void)
 {
@@ -58,4 +58,4 @@ int hwbutton(void)
 
 }
 FINSH_FUNCTION_EXPORT(hwbutton, Test hardware button);
-#endif
+#endif /* RT_USING_HWBUTTON_TEST */
