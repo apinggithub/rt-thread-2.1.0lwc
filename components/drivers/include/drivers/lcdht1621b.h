@@ -27,6 +27,7 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,12 +46,12 @@ typedef struct rt_lcdth_ramdat
     uint8_t segno;  /*segement no.*/
     uint8_t dat;    /*port data*/
     
-}rt_lcdth_ramdat_t;
+}rt_lcd_ramdat_t;
 
 typedef struct rt_lcdht_ops
 {   
     /*the APIs for low driver*/
-    rt_err_t (*drv_init)(rt_device_t dev);    
+    rt_err_t (*drv_init)(rt_device_t dev,rt_uint8_t status);    
     rt_size_t (*drv_write)(rt_device_t dev, const void *buffer, rt_size_t size);  
     rt_err_t (*drv_control)(rt_device_t dev, rt_uint8_t cmd, void *args);
     /* TODO: add GPIO interrupt */

@@ -88,8 +88,19 @@ static void HTB_SendFullScreenOn(void)
 {
     /* seg0 ~ seg19 in use */
     for(uint8_t i = 0; i < 32; i++)
-    {       
-        HTB_SendDat(i, 0x0f);            
+    { 
+        if(7 == i)
+        {
+            HTB_SendDat(i, 0x0E);   
+        }
+        else
+        {
+            HTB_SendDat(i, 0x0F);   
+        }            
+        if(17 == i)/* segement 18 ~ 29 not use */
+        {
+            i = 30-1;
+        }
     }
 }
 static void HTB_SendFullScreenOff(void)
@@ -101,7 +112,7 @@ static void HTB_SendFullScreenOff(void)
     }
 }
     
-static rt_err_t drv_lcdht_init(rt_device_t dev)
+static rt_err_t drv_lcdht_init(rt_device_t dev, rt_uint8_t status)
 {
     
     rt_device_lcdht_t *lcdht = (rt_device_lcdht_t *)dev;
@@ -115,18 +126,26 @@ static rt_err_t drv_lcdht_init(rt_device_t dev)
     __HAL_RCC_GPIOC_CLK_ENABLE();
   
     /*Configure GPIO pins : PC6 PC7 PC8 PC9 */
-    
-    GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9; /*PC6~PC9*/
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-    
-    /*initialize the HT lcd */
-    LCDHT_BKL_H();  /*turn on the backlight*/      
-    HTB_SendCmd( HTB_CMD_BIAS );  
-    HTB_SendCmd( HTB_CMD_SYSEN );   
-    HTB_SendCmd( HTB_CMD_LCDON );
+    if(1 == status)
+    {
+        GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9; /*PC6~PC9*/
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+        
+        /*initialize the HT lcd */
+        //LCDHT_BKL_H();  /*turn on the backlight*/      
+        HTB_SendCmd( HTB_CMD_BIAS );  
+        HTB_SendCmd( HTB_CMD_SYSEN );   
+        HTB_SendCmd( HTB_CMD_LCDON );
+    }
+    else
+    {
+        HTB_SendCmd( HTB_CMD_LCDOFF );
+        //LCDHT_BKL_L();
+        HAL_GPIO_DeInit(GPIOC, GPIO_InitStruct.Pin);
+    }
         
     return RT_EOK;
 }
@@ -139,9 +158,9 @@ static rt_size_t drv_lcdth_write(rt_device_t dev, const void *buffer, rt_size_t 
     RT_ASSERT(lcdht != RT_NULL);
     RT_ASSERT(buffer != RT_NULL);
     
-    rt_lcdth_ramdat_t *rcv;
+    rt_lcd_ramdat_t *rcv;
            
-    rcv = (rt_lcdth_ramdat_t *)buffer;
+    rcv = (rt_lcd_ramdat_t *)buffer;
     
     HTB_SendDat(rcv->segno, rcv->dat); 
         

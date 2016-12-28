@@ -38,13 +38,13 @@ static rt_err_t rt_hwbutton_init(rt_device_t dev)
     /* check parameters */
     RT_ASSERT(button != RT_NULL);
 
-    err = button->ops->drv_init(dev);
+    err = button->ops->drv_init(dev, 1);
     return err;
 }
 
 static rt_size_t rt_hwbutton_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
-    //rt_device_port_status_t *stat;
+   
     rt_uint8_t *pbuf;
     rt_device_button_t *button = (rt_device_button_t *)dev;
 
@@ -59,6 +59,29 @@ static rt_size_t rt_hwbutton_read(rt_device_t dev, rt_off_t pos, void *buffer, r
     return size;
 }
 
+static rt_err_t rt_hwbutton_close(rt_device_t dev)
+{
+    rt_err_t result = RT_EOK;
+    rt_device_button_t *button = (rt_device_button_t *)dev;
+    
+    /* check parameters */
+    RT_ASSERT(button != RT_NULL);
+      
+    if (button->ops->drv_init != RT_NULL)
+    {
+        button->ops->drv_init(dev, 0);
+    }
+    else
+    {
+        result = -RT_ENOSYS;
+    }
+
+    dev->flag &= ~RT_DEVICE_FLAG_ACTIVATED;
+    dev->rx_indicate = RT_NULL;
+
+    return result;
+}
+
 int rt_device_button_register(const char *name, const rt_button_ops_t *ops, void *user_data)
 {
     _hw_button.parent.type         = RT_Device_Class_Miscellaneous;
@@ -67,7 +90,7 @@ int rt_device_button_register(const char *name, const rt_button_ops_t *ops, void
 
     _hw_button.parent.init         = rt_hwbutton_init;
     _hw_button.parent.open         = RT_NULL;
-    _hw_button.parent.close        = RT_NULL;
+    _hw_button.parent.close        = rt_hwbutton_close;
     _hw_button.parent.read         = rt_hwbutton_read;
     _hw_button.parent.write        = RT_NULL;//_port_write;
     _hw_button.parent.control      = RT_NULL;//_port_control;

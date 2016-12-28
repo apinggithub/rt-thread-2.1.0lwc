@@ -42,8 +42,9 @@ typedef struct rt_device_button
 
 typedef struct rt_button_ops
 {       
-    rt_err_t (*drv_init)(rt_device_t dev);    
+    rt_err_t (*drv_init)(rt_device_t dev,rt_uint8_t flag);    
     rt_size_t (*drv_read)(rt_device_t dev);    
+    rt_size_t (*drv_close)(rt_device_t dev);   
     /* TODO: add GPIO interrupt */
 }rt_button_ops_t;
 

@@ -9,6 +9,9 @@ application.c
 startup.c
 """)
 
+if GetDepend('RT_USING_LIGHT_WAVE_CURER'):
+    src += ['light_wave_curer_button.c','light_wave_curer_display.c','light_wave_curer_output.c']
+	
 if GetDepend('RT_USING_HWTIMER_TEST'):
     src += ['drv_hwtimer_test.c']
 	

@@ -40,14 +40,14 @@ int xtp(void)
         rt_thread_delay(RT_TICK_PER_SECOND);
         
         /* write the lcd */
-        for(uint8_t i = 0;i < 68;i++)
+        for(uint8_t i = 0;i < 66; i++)
         {
             vcno = 0x5A+i;     
             rt_device_write(devxtp, 0, &vcno, sizeof(vcno));
                         
-            rt_kprintf("Send to the voice chip  segno = %d  \n", vcno);
+            rt_kprintf("Send to the voice chip  segno = %d  \n", i);
             
-            rt_thread_delay(3*RT_TICK_PER_SECOND);  
+            rt_thread_delay(5*RT_TICK_PER_SECOND);  
             
             //rt_thread_delay(RT_TICK_PER_SECOND);                          
                                                    

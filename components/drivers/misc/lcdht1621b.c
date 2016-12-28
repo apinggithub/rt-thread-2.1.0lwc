@@ -40,7 +40,7 @@ static rt_err_t rt_lcdht_init(rt_device_t dev)
     /* check parameters */
     RT_ASSERT(lcdht != RT_NULL);
 
-    err = lcdht->ops->drv_init(dev);
+    err = lcdht->ops->drv_init(dev, 1);
     return err;
 }
 
@@ -70,6 +70,31 @@ static rt_err_t rt_lcdht_control(rt_device_t dev, rt_uint8_t cmd, void *args)
     
 }
 
+static rt_err_t rt_lcdht_close(rt_device_t dev)
+{
+    rt_err_t result = RT_EOK;
+    rt_device_lcdht_t *lcdht = (rt_device_lcdht_t *)dev;
+    
+    /* check parameters */
+    RT_ASSERT(lcdht != RT_NULL);
+      
+    if (lcdht->ops->drv_init != RT_NULL)
+    {
+        lcdht->ops->drv_init(dev, 0);
+    }
+    else
+    {
+        result = -RT_ENOSYS;
+    }
+
+    dev->flag &= ~RT_DEVICE_FLAG_ACTIVATED;
+    dev->rx_indicate = RT_NULL;
+
+    return result;
+}
+
+
+
 int rt_device_lcdht_register(const char *name, const rt_lcdht_ops_t *ops, void *user_data)
 {
     _lcd_ht1621b.parent.type         = RT_Device_Class_Miscellaneous;
@@ -78,7 +103,7 @@ int rt_device_lcdht_register(const char *name, const rt_lcdht_ops_t *ops, void *
 
     _lcd_ht1621b.parent.init         = rt_lcdht_init;
     _lcd_ht1621b.parent.open         = RT_NULL;
-    _lcd_ht1621b.parent.close        = RT_NULL;
+    _lcd_ht1621b.parent.close        = rt_lcdht_close;
     _lcd_ht1621b.parent.read         = RT_NULL;
     _lcd_ht1621b.parent.write        = rt_lcdht_write;
     _lcd_ht1621b.parent.control      = rt_lcdht_control;

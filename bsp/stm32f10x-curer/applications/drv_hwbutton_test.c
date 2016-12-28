@@ -2,6 +2,7 @@
 #include <rtdevice.h>
 #include <finsh.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef RT_USING_HWBUTTON_TEST
 

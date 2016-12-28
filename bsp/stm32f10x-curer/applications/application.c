@@ -44,40 +44,17 @@
 #include "drv_led.h"
 #include "drv_gpio.h"
 #include "drv_hwbutton.h"
+#include "light_wave_curer.h"
 
 ALIGN(RT_ALIGN_SIZE)
 static rt_uint8_t led_stack[ 512 ];
 static struct rt_thread led_thread;
 
-static struct rt_timer timer1;
-/*定时器超时函数*/
-//rt_uint8_t led2sw = 0;
-static void timeout1(void* parameter)
-{
-	//rt_kprintf("periodic timer is timeout\n");
-	
-	//rt_pin_write(19, led2sw);
-	//led2sw = (~led2sw)&0x01;
-	
-}
+
 static void led_thread_entry(void* parameter)
 {
     unsigned int count=0;
     
-    int rt_led_hw_init();
-    
-	//rt_pin_mode(19, PIN_MODE_OUTPUT);// the port PA8 
-	
-	/* 初始化定时器*/
-	rt_timer_init(&timer1, "timer1", /* 定时器名为timer1 */
-	timeout1, /* 超时函数回调处理 */
-	RT_NULL, /* 超时函数入口参数*/
-	1000, /* 定时长度,OS 以Tick为单位,即10个OS Tick */
-	RT_TIMER_FLAG_PERIODIC); /* 周期性定时*/
-	
-	rt_timer_start(&timer1);	
-	
-
     while (1)
     {
         /* led1 on */
@@ -86,17 +63,9 @@ static void led_thread_entry(void* parameter)
 #endif
         count++;
         rt_led_on();
-			  //rt_pin_write(19, PIN_HIGH);
-        
-#ifdef RT_USING_HWBUTTON    
-    
-  	//stm32_hw_button_init();  
-    
-#endif /* RT_USING_HWBUTTON */         
-			
+			  			
         rt_thread_delay( RT_TICK_PER_SECOND/2 ); /* sleep 0.5 second and switch to other thread */
-				//rt_pin_write(19, PIN_LOW);
-        
+
 			
         /* led1 off */
 #ifndef RT_USING_FINSH
@@ -184,7 +153,8 @@ int rt_application_init(void)
     rt_thread_t init_thread;
 
     rt_err_t result;
-
+    
+     
     /* init led thread */
     result = rt_thread_init(&led_thread,
                             "led",
@@ -198,6 +168,48 @@ int rt_application_init(void)
     {
         rt_thread_startup(&led_thread);
     }
+    
+#ifdef RT_USING_LIGHT_WAVE_CURER   
+    /* init lwc process thread */
+    result = rt_thread_init(&lwc_button_thread,
+                            "lwcbutton",
+                            lwc_button_thread_entry,
+                            RT_NULL,
+                            (rt_uint8_t*)&lwc_button_stack[0],
+                            sizeof(lwc_button_stack),
+                            20,
+                            5);
+    if (result == RT_EOK)
+    {
+        rt_thread_startup(&lwc_button_thread);
+    }   
+    /* init lwc display thread */
+    result = rt_thread_init(&lwc_display_thread,
+                            "lwcdisplay",
+                            lwc_display_thread_entry,
+                            RT_NULL,
+                            (rt_uint8_t*)&lwc_display_stack[0],
+                            sizeof(lwc_display_stack),
+                            20,
+                            5);
+    if (result == RT_EOK)
+    {
+        rt_thread_startup(&lwc_display_thread);
+    } 
+    /* init lwc control thread */
+    result = rt_thread_init(&lwc_output_thread,
+                            "lwcoutput",
+                            lwc_output_thread_entry,
+                            RT_NULL,
+                            (rt_uint8_t*)&lwc_output_stack[0],
+                            sizeof(lwc_output_stack),
+                            20,
+                            5);
+    if (result == RT_EOK)
+    {
+        rt_thread_startup(&lwc_output_thread);
+    }  
+#endif /* RT_USING_LIGHT_WAVE_CURER */    
 
 #if (RT_THREAD_PRIORITY_MAX == 32)
     init_thread = rt_thread_create("init",

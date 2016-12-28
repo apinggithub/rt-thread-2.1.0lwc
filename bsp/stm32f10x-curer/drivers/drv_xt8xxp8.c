@@ -75,20 +75,20 @@ static void XTP_SendBitLsb(uint8_t dat)
         if(dat & 0x01) 
         {
             XTP_DAT_H();
-            //rt_hw_us_delay(600);
-            rt_thread_delay(RT_TICK_PER_SECOND*2/1000);
+            rt_hw_us_delay(600);
+            //rt_thread_delay(RT_TICK_PER_SECOND*2/1000);
             XTP_DAT_L();
-            //rt_hw_us_delay(200);
-            rt_thread_delay(RT_TICK_PER_SECOND/1000);
+            rt_hw_us_delay(200);
+            //rt_thread_delay(RT_TICK_PER_SECOND/1000);
         }
         else
         {            
             XTP_DAT_L();
-            //rt_hw_us_delay(600);
-            rt_thread_delay(RT_TICK_PER_SECOND*2/1000);
+            rt_hw_us_delay(600);
+            //rt_thread_delay(RT_TICK_PER_SECOND*2/1000);
             XTP_DAT_H();
-            //rt_hw_us_delay(200);
-            rt_thread_delay(RT_TICK_PER_SECOND/1000);
+            rt_hw_us_delay(200);
+            //rt_thread_delay(RT_TICK_PER_SECOND/1000);
         }                          
         dat >>= 1;
        

@@ -21,7 +21,7 @@
 
 #ifdef RT_USING_HWBUTTON
 
-static rt_err_t drv_button_init(rt_device_t dev)
+static rt_err_t drv_button_init(rt_device_t dev, rt_uint8_t status)
 {
     
     rt_device_button_t *button = (rt_device_button_t *)dev;
@@ -30,23 +30,29 @@ static rt_err_t drv_button_init(rt_device_t dev)
     RT_ASSERT(button != RT_NULL);
     
     GPIO_InitTypeDef GPIO_InitStruct;
-
-    /* GPIO Ports Clock Enable */
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-  
-    /*Configure GPIO pins : PC0 PC1 PC2 PC3 PC4 PC5 */
-    
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3; /*PC0~PC3*/
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-    
-    GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;/*PC4 PC5*/
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    if (status == 1)
+    {
+        /* GPIO Ports Clock Enable */
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+      
+        /*Configure GPIO pins : PC0 PC1 PC2 PC3 PC4 PC5 */
+        
+        GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3; /*PC0~PC3*/
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+        
+        GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;/*PC4 PC5*/
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    }
+    else
+    {
+        HAL_GPIO_DeInit(GPIOC, GPIO_InitStruct.Pin);
+    }
     
     return RT_EOK;
 }
@@ -115,7 +121,7 @@ static rt_uint8_t drv_button_process(void)
                 break;
                 case 0x08:
                 {
-                    val = 0x28;//S11 CYB
+                    val = 0x28;//S11 LZLF
                 }
                 break;
                 default:
@@ -170,7 +176,7 @@ static rt_size_t drv_button_read(rt_device_t dev)
     if( (rcv = drv_button_process()) != 0)/* button pressed */
     {
           
-        rt_thread_delay(RT_TICK_PER_SECOND/10);
+        rt_thread_delay(RT_TICK_PER_SECOND/100);
         if( drv_button_process() != rcv)/*if the button is not same twice*/
         {
             rcv = 0;            
@@ -192,8 +198,7 @@ static rt_size_t drv_button_read(rt_device_t dev)
 const static rt_button_ops_t _drv_button_ops =
 {
     drv_button_init,   
-    drv_button_read,
-   
+    drv_button_read,    
 };
 
 int stm32_hw_button_init(void)
