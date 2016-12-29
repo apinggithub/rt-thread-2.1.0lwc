@@ -33,7 +33,7 @@
 #include "light_wave_curer.h"
 
 //static rt_err_t seglcd_dislay_time(rt_device_t dev, rt_lcd_ramdat_t *lcds, uint8_t tmr_value, uint8_t flag);
-static rt_err_t seglcd_display(rt_device_t dev, lwc_cure_display_t *lc);
+static rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc);
 
 //static rt_sem_t sem = RT_NULL;
 rt_uint16_t tmr_count = 0;
@@ -62,10 +62,10 @@ void lwc_display_thread_entry(void* parameter)
     //lwc_cure_display_t *rlwc;
     rt_device_t dev_slcd = RT_NULL;
     
-    rt_memset(&lcd.lreg.btn, 0, sizeof(lwc_button_t));
-    rt_memset(&lcd.lreg.tval, 0, sizeof(timer_val_t));
-    rt_memset(&lcd.lway, 0, 5*sizeof(lwc_cure_way_t));
-#if 0        
+    rt_memset(&lct.lreg.btn, 0, sizeof(lwc_button_t));
+    rt_memset(&lct.lreg.tval, 0, sizeof(timer_val_t));
+    rt_memset(&lct.lway, 0, 5*sizeof(lwc_cure_way_t));
+        
     if ((dev_slcd = rt_device_find(LCD)) == RT_NULL)
     {
         rt_kprintf("No Device: %s\n", LCD);
@@ -76,7 +76,7 @@ void lwc_display_thread_entry(void* parameter)
         rt_kprintf("Open %s Fail\n", LCD);
         while(1);
     }
-#endif    
+   
     /* 初始化定时器*/
 	rt_timer_init(&timer1, "timer1", /* 定时器名为timer1 */
 	timeout1, /* 超时函数回调处理 */
@@ -89,41 +89,40 @@ void lwc_display_thread_entry(void* parameter)
     //rt_sem_init(sem, "sem_update", 0, RT_IPC_FLAG_FIFO);
     while (1)
     {
-#if 0        
-        if((0 == lcd.lreg.power_ok)&&(1 == lcd.lreg.btn.button_dyds))
+       
+        if((0 == lct.lreg.power_ok)&&(1 == lct.lreg.btn.button_dyds))
         {
-            lcd.lreg.power_ok = 1; 
+            lct.lreg.power_ok = 1; 
             for(rt_uint8_t i = 0; i < 20; i++)
             {
                 if(18 == i)
                 {
-                   lcd.lcdr[i].segno = 30; 
+                   lct.lcdr[i].segno = 30; 
                 }
                 else if(19 == i)
                 {
-                   lcd.lcdr[i].segno = 31; 
+                   lct.lcdr[i].segno = 31; 
                 }
                 else
                 {
-                    lcd.lcdr[i].segno = i;                   
+                    lct.lcdr[i].segno = i;                   
                 } 
-                lcd.lcdr[i].dat = 0;
+                lct.lcdr[i].dat = 0;
             }  
             
             rt_device_control(dev_slcd, LCDHT_CMD_BKLON, RT_NULL);
             rt_device_control(dev_slcd, LCDHT_CMD_LCDON, RT_NULL);
             rt_device_control(dev_slcd, LCDHT_CMD_FULL_SREEN_ON, RT_NULL);
             rt_thread_delay( RT_TICK_PER_SECOND );
-            rt_device_control(dev_slcd, LCDHT_CMD_FULL_SREEN_OFF, RT_NULL);
-            
+            rt_device_control(dev_slcd, LCDHT_CMD_FULL_SREEN_OFF, RT_NULL);            
             
         }
-        else if(1 == lcd.lreg.power_ok)
+        else if(1 == lct.lreg.power_ok)
         {                             
-            seglcd_display(dev_slcd, (lwc_cure_display_t *)&lcd);
+            seglcd_display(dev_slcd, (lwc_cure_t *)&lct);
         }
- #endif       
-        rt_thread_delay( RT_TICK_PER_SECOND/100 ); /* sleep 0.01 second and switch to other thread */
+             
+        rt_thread_delay( RT_TICK_PER_SECOND/10 ); /* sleep 0.01 second and switch to other thread */       
     }
 }
 /*
@@ -332,7 +331,7 @@ active the segement display function
 dev ---> the segement lcd device
 mode ---> cure mode
 */
-rt_err_t seglcd_display(rt_device_t dev, lwc_cure_display_t *lc)
+rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
 {
 
     rt_err_t err = RT_EOK;
@@ -390,9 +389,9 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_display_t *lc)
         err = rt_device_control(dev, LCDHT_CMD_FULL_SREEN_OFF, RT_NULL);  
         err = rt_device_control(dev, LCDHT_CMD_LCDOFF, RT_NULL);        
         err = rt_device_control(dev, LCDHT_CMD_BKLOFF, RT_NULL);
-        rt_memset(&lcd.lreg.btn, 0, sizeof(lwc_button_t));
-        rt_memset(&lcd.lreg.tval, 0, sizeof(timer_val_t));
-        rt_memset(&lcd.lway, 0, 5*sizeof(lwc_cure_way_t));
+        rt_memset(&lc->lreg.btn, 0, sizeof(lwc_button_t));
+        rt_memset(&lc->lreg.tval, 0, sizeof(timer_val_t));
+        rt_memset(&lc->lway, 0, 5*sizeof(lwc_cure_way_t));
     }           
 
     if(LWC_ACTIVED == lc->lway[LASER_CURE].status)/* display on */

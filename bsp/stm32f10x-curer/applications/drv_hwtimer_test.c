@@ -28,7 +28,7 @@ static rt_err_t timer4a_timeout_cb(rt_device_t dev, rt_size_t size)
 int hwtimer(void)
 {
     rt_err_t err;
-    rt_hwtimer_tmr_t tmr;
+    rt_hwtimer_tmrval_t tmr;
 
     //rt_tick_t tick;
     //rt_hwtimer_mode_t mode;
@@ -231,8 +231,8 @@ EXIT_TIM2:
     
     //uint8_t ch = 3;
     static uint16_t aval;
-    rt_hwtimer_val_t hwt3;
-    hwt3.ch = 3;
+    rt_hwtimer_chval_t hwc3;
+    hwc3.ch = 3;
     
     rt_kprintf("Now test the %s ... \n", TIMER3);
     
@@ -255,8 +255,8 @@ EXIT_TIM2:
     
     rt_device_set_rx_indicate(dev_hwtimer3, timer3a_timeout_cb);
     /* 计数时钟设置(默认1Mhz或支持的最小计数频率) */
-    hwt3.value = timer3->freq;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_FREQ, &hwt3);
+    hwc3.value = timer3->freq;
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_FREQ, &hwc3);
     if (err != RT_EOK)
     {
         rt_kprintf("Set Freq = %dHz Fail\n", timer3->freq);
@@ -273,7 +273,7 @@ EXIT_TIM2:
     
     rt_kprintf(" default reload = %d \n", timer3->reload);  
        
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_AUTORELOAD, &hwt3); 
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_AUTORELOAD, &hwc3); 
     if (err != RT_EOK)
     {
         rt_kprintf("Get the timer reload Fail\n");
@@ -281,22 +281,22 @@ EXIT_TIM2:
     }
     else
     {
-        rt_kprintf("Get the timer reload  = %d \n", hwt3.value);
+        rt_kprintf("Get the timer reload  = %d \n", hwc3.value);
     }
     //rt_kprintf(" default Get ch = %d pwm = %d \n", ch, timer->pwm_duty_cycle[ch]);
     
     
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwt3);
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwc3);
     if (err != RT_EOK)
     {
-        rt_kprintf("Get ch = %d pwm Fail\n", hwt3.ch);
+        rt_kprintf("Get ch = %d pwm Fail\n", hwc3.ch);
         goto EXIT_TIM3;
     }
     else
     {
-        rt_kprintf("Get ch = %d pwm = %d ok\n", hwt3.ch, hwt3.value);
+        rt_kprintf("Get ch = %d pwm = %d ok\n", hwc3.ch, hwc3.value);
     }
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_AUTORELOAD, &hwt3); 
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_AUTORELOAD, &hwc3); 
     if (err != RT_EOK)
     {
         rt_kprintf("Get the timer reload Fail\n");
@@ -304,20 +304,20 @@ EXIT_TIM2:
     }
     else
     {
-        rt_kprintf("Get the timer reload  = %d \n", hwt3.value);
+        rt_kprintf("Get the timer reload  = %d \n", hwc3.value);
     }
     //timer->pwm_duty_cycle[ch] += 100;
-    aval = hwt3.value;
-    hwt3.value = aval*1/3;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, (rt_hwtimer_val_t*)&hwt3);
+    aval = hwc3.value;
+    hwc3.value = aval*1/3;
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, (rt_hwtimer_chval_t*)&hwc3);
     if (err != RT_EOK)
     {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt3.ch);
+        rt_kprintf("Set ch  = %d pwm Fail\n", hwc3.ch);
         goto EXIT_TIM3;
     }
     else
     {
-        rt_kprintf("Set ch = %d pwm = %d ok,\n", hwt3.ch, hwt3.value);
+        rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc3.ch, hwc3.value);
     }
     //tick = rt_tick_get();
     //rt_kprintf("Start Timer> Tick: %d\n", tick);
@@ -326,8 +326,8 @@ EXIT_TIM2:
     tmr.usec = 0;
     
     rt_kprintf("SetTime: Sec %d, Usec %d\n", tmr.sec, tmr.usec);
-    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_START, &hwt3);
-    /*if (rt_device_write(dev_hwtimer3, hwt3.ch, &tmr, sizeof(tmr)) != sizeof(tmr))
+    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_START, &hwc3);
+    /*if (rt_device_write(dev_hwtimer3, hwc3.ch, &tmr, sizeof(tmr)) != sizeof(tmr))
     {
         rt_kprintf("SetTime Fail\n");
         goto EXIT_TIM3;
@@ -335,19 +335,19 @@ EXIT_TIM2:
     rt_kprintf("The timer will work on %d sec.\n", t/2);
     
     rt_thread_delay(t*RT_TICK_PER_SECOND/2 );
-    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwt3);
+    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc3);
     //ch = 2;   
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwt3);
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwc3);
     if (err != RT_EOK)
     {
-        rt_kprintf("Get ch = %d pwm Fail\n", hwt3.ch);
+        rt_kprintf("Get ch = %d pwm Fail\n", hwc3.ch);
         goto EXIT_TIM3;
     }
     else
     {
-        rt_kprintf("Get ch = %d pwm = %d ok\n", hwt3.ch, hwt3.value);
+        rt_kprintf("Get ch = %d pwm = %d ok\n", hwc3.ch, hwc3.value);
     }
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_AUTORELOAD, &hwt3); 
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_AUTORELOAD, &hwc3); 
     if (err != RT_EOK)
     {
         rt_kprintf("Get the timer reload Fail\n");
@@ -355,23 +355,23 @@ EXIT_TIM2:
     }
     else
     {
-        rt_kprintf("Get the timer reload  = %d \n", hwt3.value);
+        rt_kprintf("Get the timer reload  = %d \n", hwc3.value);
     }
-    aval = hwt3.value;
-    hwt3.value = aval*2/3;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt3);
+    aval = hwc3.value;
+    hwc3.value = aval*2/3;
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc3);
     if (err != RT_EOK)
     {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt3.ch);
+        rt_kprintf("Set ch  = %d pwm Fail\n", hwc3.ch);
         goto EXIT_TIM3;
     }
     else
     {
-        rt_kprintf("Set ch = %d pwm = %d ok,\n", hwt3.ch, hwt3.value);
+        rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc3.ch, hwc3.value);
     }
-    //rt_device_control(dev_hwtimer3, HWTIMER_CTRL_START, &hwt3);
+    //rt_device_control(dev_hwtimer3, HWTIMER_CTRL_START, &hwc3);
     tmr.sec = t/2;
-    if (rt_device_write(dev_hwtimer3, hwt3.ch, &tmr, sizeof(tmr)) != sizeof(tmr))
+    if (rt_device_write(dev_hwtimer3, hwc3.ch, &tmr, sizeof(tmr)) != sizeof(tmr))
     {
         rt_kprintf("SetTime Fail\n");
         goto EXIT_TIM3;
@@ -379,10 +379,10 @@ EXIT_TIM2:
     rt_kprintf("The timer will work on %d sec.\n", t/2);
     
     rt_thread_delay(t*RT_TICK_PER_SECOND/2);
-    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwt3);
-    rt_device_read(dev_hwtimer3, hwt3.ch, &tmr, sizeof(tmr));
+    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc3);
+    rt_device_read(dev_hwtimer3, hwc3.ch, &tmr, sizeof(tmr));
     rt_kprintf("Read: Sec = %d, Usec = %d\n", tmr.sec, tmr.usec);
-    rt_kprintf("Read: timer->cycle[%d] = %d, \n", hwt3.ch, timer3->cycles[hwt3.ch]);
+    rt_kprintf("Read: timer->cycle[%d] = %d, \n", hwc3.ch, timer3->cycles[hwc3.ch]);
     
 EXIT_TIM3:
     err = rt_device_close(dev_hwtimer3);
@@ -394,9 +394,9 @@ EXIT_TIM3:
 #ifdef RT_USING_HWTIM4
     #define TIMER4   "timer4"
     rt_device_t dev_hwtimer4 = RT_NULL;  
-    rt_hwtimercnt_t hwt4;
+    rt_hwtimer_chval_t hwc3;
     static uint8_t val4 = 0;
-    hwt4.ch = 0;
+    hwc3.ch = 0;
     //rt_pin_mode(20, PIN_MODE_OUTPUT);// the port PF8
    
     rt_kprintf("Now test the %s ... \n", TIMER4);
@@ -471,29 +471,29 @@ EXIT_TIM3:
     }
     //rt_kprintf(" default Get ch = %d pwm = %d \n", ch, timer->pwm_duty_cycle[ch]);
     
-    rt_kprintf("Get the ch No.%d duty cycle ...\n", hwt4.ch);
-    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwt4);
+    rt_kprintf("Get the ch No.%d duty cycle ...\n", hwc3.ch);
+    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwc3);
     if (err != RT_EOK)
     {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt4.ch);
+        rt_kprintf("Set ch  = %d pwm Fail\n", hwc3.ch);
         goto EXIT_TIM4;
     }
     else
     {
-        rt_kprintf("Get ch = %d pwm = %d ok,\n", hwt4.ch, hwt4.count);
+        rt_kprintf("Get ch = %d pwm = %d ok,\n", hwc3.ch, hwc3.count);
     }
     
-    hwt4.count += 100;
-    rt_kprintf("Set the ch No.%d duty cycle ...\n", hwt4.ch);
-    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt4);
+    hwc3.count += 100;
+    rt_kprintf("Set the ch No.%d duty cycle ...\n", hwc3.ch);
+    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc3);
     if (err != RT_EOK)
     {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt4.ch);
+        rt_kprintf("Set ch  = %d pwm Fail\n", hwc3.ch);
         goto EXIT_TIM4;
     }
     else
     {
-        rt_kprintf("Set ch = %d pwm = %d ok,\n", hwt4.ch, hwt4.count);
+        rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc3.ch, hwc3.count);
     }
     
     rt_kprintf("The timer will work on %d sec.\n", t/2);

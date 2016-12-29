@@ -66,14 +66,28 @@
 #define TMR_DELAY_600ms                 600
 #define TMR_DELAY_900ms                 900
 
+
+#define TMR_CH_LASER_CURE              3
+#define TMR_CH_HEAT_CURE               4
+
+/* the event type rt-thread event API */
+#define RT_EVENT_LWC_TIMER_FINISH_CLOSE     1<<0 /* 定时器超时输出关闭 */
+#define RT_EVENT_LWC_DEVICE_POWER_CLOSE     1<<1 /* 定时递减到0 */
+#define RT_EVENT_LWC_DEVICE_FORCE_CLOSE     1<<2 /* 设备强制关闭 */
+#define RT_EVENT_LWC_BUTTON_UPDATE          1<<3 /* 按键更新 */
+#define RT_EVENT_LWC_LASER_CURE_CLOSE       1<<4 /* 激光关闭*/
+#define RT_EVENT_LWC_HEAT_CURE_CLOSE        1<<5 /* 热疗关闭*/
+#define RT_EVENT_LWC_IONICE_CURE_CLOSE      1<<6 /* 离子治疗关闭*/
+#define RT_EVENT_LWC_FUNCTION_CLOSE         1<<7 /* 功能治疗关闭*/
+
 /* define cure mode */
 enum cure_mod
 {
-    SET_TIMER  = 0x00,  /* 定时 */
-    LASER_CURE,         /* 激光治疗 */
-    HEAT_CURE,          /* 热疗 */
-    IONICE_CURE,        /* 离子疗法 */
-    FUNCTION            /* 功能 */  
+    SET_TIMER  = 0x00,  /*  定时 */
+    LASER_CURE,         /*  激光治疗 */
+    HEAT_CURE,          /*  热疗 */
+    IONICE_CURE,        /*  离子疗法 */
+    FUNCTION            /*  功能 */  
 };
 
 enum func_mod
@@ -107,9 +121,10 @@ typedef struct lwc_button
 
 typedef struct timer_val
 {
-    uint8_t tmr_value;
-    uint8_t lcd_hbyte;
-    uint8_t lcd_lbyte;   
+    uint8_t tmr_value;  /* 定时时间长度 */
+    uint8_t lcd_hbyte;  /* LCD 显示高位 */
+    uint8_t lcd_lbyte;  /* LCD 显示低位 */ 
+    uint8_t tmr_lock;   /* 定时时间锁定 */    
 }timer_val_t;
 
 typedef struct lwc_cure_way
@@ -117,11 +132,12 @@ typedef struct lwc_cure_way
     uint8_t status;     /* 激活状态 */      
 }lwc_cure_way_t;    
 
-typedef struct lwc_cure_force
+typedef struct lwc_cure_output
 {
     uint8_t force;      /* 治疗强度 */
-    uint8_t func;           /* 功能代号 */
-}lwc_cure_force_t;  
+    uint8_t func;       /* 功能代号 */
+    uint8_t cure_out_actived;
+}lwc_cure_output_t;  
 
 typedef struct lwc_data_reg
 {   
@@ -135,21 +151,15 @@ typedef struct lwc_cure_display
     lwc_data_reg_t lreg;
     lwc_cure_way_t lway[5];     /* 治疗方式 */    
     rt_lcd_ramdat_t lcdr[20];   /* 共用20个段位 */
-}lwc_cure_display_t;
-
-typedef struct lwc_cure_control  
-{   
-    lwc_data_reg_t lreg;
-    lwc_cure_way_t lway[5];     /* 四种治疗方式加上时间设置 */    
-    lwc_cure_force_t lcf[4];    /* 共四路输出*/
-}lwc_cure_output_t;
+    lwc_cure_output_t lcf[4];    /* 共四路输出*/
+}lwc_cure_t;
 
 
 extern struct rt_mailbox mb;
 extern char mb_pool[128];
 
-extern lwc_cure_display_t lcd;
-extern lwc_cure_output_t lco;
+extern lwc_cure_t lct;
+extern struct rt_event event;
 
 extern rt_uint8_t lwc_button_stack[ 1024 ];
 extern struct rt_thread lwc_button_thread;

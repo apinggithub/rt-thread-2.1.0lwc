@@ -49,13 +49,13 @@ typedef struct rt_hwtimer_tmr
 {
     rt_int32_t sec;      /* second */
     rt_int32_t usec;     /* microsecond */
-} rt_hwtimer_tmr_t;
+} rt_hwtimer_tmrval_t;
 
 typedef struct rt_hwtimer_val
 {
     rt_int8_t ch;      /* channel no. */
     rt_int32_t value;  /* counter */
-} rt_hwtimer_val_t;
+} rt_hwtimer_chval_t;
 
 #define HWTIMER_CNTMODE_UP      0x01 /* increment count mode */
 #define HWTIMER_CNTMODE_DW      0x02 /* decreasing count mode */

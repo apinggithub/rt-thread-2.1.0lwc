@@ -24,7 +24,7 @@
 #include <finsh.h>
 #include <drivers/lcdht1621b.h>
 #include <drv_lcdht1621b.h>
-
+#include <drivers/hwtimer.h>
 
 #include "drv_led.h"
 #include "drv_gpio.h"
@@ -32,7 +32,7 @@
 
 #include "light_wave_curer.h"
 
-static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_output_t *lcc);
+static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc);
 
 const float frq[][6] = {
     {26.0,  17.0,   9.0,    5.0,    0.5,    4.0},
@@ -50,27 +50,30 @@ const float frq[][6] = {
 ALIGN(RT_ALIGN_SIZE)
 rt_uint8_t lwc_output_stack[ 1024 ];
 struct rt_thread lwc_output_thread;
-/*
+
 static rt_err_t timer3_timeout_cb(rt_device_t dev, rt_size_t size)
 {
-    rt_kprintf("HT %d\n", rt_tick_get());    
+    //rt_kprintf("HT %d\n", rt_tick_get());
+    //lct.lreg.tval.cure_done = 1;  
+    rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);
     return 0;
 }
 static rt_err_t timer4_timeout_cb(rt_device_t dev, rt_size_t size)
 {
     rt_kprintf("HT %d\n", rt_tick_get());    
     return 0;
-}*/
+}
 void lwc_output_thread_entry(void* parameter)
 {
-    #if 0
+
     rt_err_t err;
     rt_device_t dev_hwtimer3 = RT_NULL;
     rt_device_t dev_hwtimer4 = RT_NULL;
     rt_device_hwtimer_t *timer3;
     rt_device_hwtimer_t *timer4;
-    rt_hwtimercnt_t hwt;
-    rt_hwtimerval_t tmrval;
+    rt_hwtimer_chval_t hwc;
+    //rt_hwtimer_tmr_t tmr;
+    rt_uint32_t recv_event;
          
     if ((dev_hwtimer3 = rt_device_find(TIMER3)) == RT_NULL)
     {
@@ -81,15 +84,35 @@ void lwc_output_thread_entry(void* parameter)
     timer3->freq = 1200;
     timer3->prescaler = 71;
     timer3->reload = 833;
-    //d = (fs/(f*p))-1 fs-->system frequency 72MHz,f --->timer output(interrupt),p-->prescaler
-    
+    //d = (fs/(f*p))-1 fs-->system frequency 72MHz,f --->timer output(interrupt),p-->prescaler    
     if (rt_device_open(dev_hwtimer3, RT_DEVICE_OFLAG_RDWR) != RT_EOK)
     {
         rt_kprintf("Open %s Fail\n", TIMER3);
         while(1);
     }
     rt_device_set_rx_indicate(dev_hwtimer3, timer3_timeout_cb);
-    
+     /* set the frequency */
+    hwc.value = timer3->freq;
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_FREQ, &hwc);
+    if (err != RT_EOK)
+    {
+        rt_kprintf("Set timer freq = %d Hz Fail! And close the %s\n" ,timer3->freq, TIMER3);
+        err = rt_device_close(dev_hwtimer3);
+        while(1);
+    }
+          
+    /* set the duty cycles 50%*/
+    /*hwt.count = timer3->reload/4;
+    hwt.ch = HWTIMER_CH3;
+    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
+    if (err != RT_EOK)
+    {
+        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
+        err = rt_device_close(dev_hwtimer3);
+        while(1);
+    }*/
+  
+#if 0
     if ((dev_hwtimer4 = rt_device_find(TIMER4)) == RT_NULL)
     {
         rt_kprintf("No Device: %s\n", TIMER4);
@@ -105,15 +128,6 @@ void lwc_output_thread_entry(void* parameter)
         while(1);
     }
     rt_device_set_rx_indicate(dev_hwtimer4, timer4_timeout_cb);
-    
-    /* set the frequency */
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_FREQ, &timer3->freq);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set timer freq = %d Hz Fail! And close the %s\n" ,timer3->freq, TIMER3);
-        err = rt_device_close(dev_hwtimer3);
-        while(1);
-    }
     err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_SET_FREQ, &timer4->freq);
     if (err != RT_EOK)
     {
@@ -121,19 +135,6 @@ void lwc_output_thread_entry(void* parameter)
         err = rt_device_close(dev_hwtimer4);
         while(1);
     }
-    /* set the duty cycles 50%*/
-    hwt.count = timer3->reload/4;
-    hwt.ch = HWTIMER_CH3;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
-        err = rt_device_close(dev_hwtimer3);
-        while(1);
-    }
-    #endif
-    
-    #if 0
     //hwt.count = timer3->reload/2;
     hwt.ch = HWTIMER_CH4;
     err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
@@ -160,7 +161,7 @@ void lwc_output_thread_entry(void* parameter)
         err = rt_device_close(dev_hwtimer4);
         while(1);
     }
-    #endif
+#endif
     
     #if 0
     /*set time lenght */                
@@ -214,72 +215,238 @@ void lwc_output_thread_entry(void* parameter)
         
         //rt_pin_write(19, PIN_HIGH);
         //rt_pin_write(19, PIN_LOW);	
-        
-        //lwc_cure_output(dev_hwtimer3, (lwc_cure_output_t *)&lco);
-        //lwc_cure_output(dev_hwtimer4, (lwc_cure_output_t *)&lco);
-        
+        if (rt_event_recv(&event, (RT_EVENT_LWC_TIMER_FINISH_CLOSE
+                                    |RT_EVENT_LWC_DEVICE_FORCE_CLOSE
+                                    |RT_EVENT_LWC_BUTTON_UPDATE
+                                    |RT_EVENT_LWC_LASER_CURE_CLOSE
+                                    |RT_EVENT_LWC_HEAT_CURE_CLOSE
+                                    ),
+                           RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
+                           RT_TICK_PER_SECOND/100, &recv_event) == RT_EOK)
+        {
+            switch(recv_event)
+            {
+                case RT_EVENT_LWC_TIMER_FINISH_CLOSE:
+                case RT_EVENT_LWC_DEVICE_FORCE_CLOSE:    
+                {
+                    hwc.ch = TMR_CH_LASER_CURE;
+                    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
+                    hwc.ch = TMR_CH_HEAT_CURE;
+                    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
+                    
+                    rt_event_send(&event, RT_EVENT_LWC_DEVICE_POWER_CLOSE);
+                }
+                break;
+                case RT_EVENT_LWC_BUTTON_UPDATE:
+                {
+                    lwc_cure_output(dev_hwtimer3, (lwc_cure_t *)&lct);
+                }
+                break;
+                case RT_EVENT_LWC_LASER_CURE_CLOSE:
+                {
+                    hwc.ch = TMR_CH_LASER_CURE;
+                    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
+                }
+                break;
+                case RT_EVENT_LWC_HEAT_CURE_CLOSE:
+                {
+                    hwc.ch = TMR_CH_HEAT_CURE;
+                    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
+                }
+                break;
+                default:
+                break;
+            }           
+            
+        }
+                             
         rt_thread_delay( RT_TICK_PER_SECOND/10 );
     }
 }
 
-static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_output_t *lcc)
+static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
 {
     rt_err_t err = RT_EOK;
     RT_ASSERT(dev != RT_NULL);
-    RT_ASSERT(lcc != RT_NULL);
+    RT_ASSERT(lc != RT_NULL);   
+    rt_hwtimer_chval_t hwc;   
     
-    //uint32_t tmrval;
-    
-    if(LWC_ACTIVED == lcc->lway[LASER_CURE].status)
+    if(LWC_ACTIVED == lc->lway[LASER_CURE].status)
     {
-        if(1 == lcc->lreg.btn.button_jg)/* low */
-        {
-            #if 0
-            err = rt_device_control(dev, HWTIMER_CTRL_SET_FREQ, &freq);
-            if (err != RT_EOK)
+        if(1 == lc->lreg.tval.tmr_lock)
+        { 
+            if(LWC_INACTIVE == lc->lcf[LASER_CURE].cure_out_actived)
+            {                
+                lc->lcf[LASER_CURE].cure_out_actived = LWC_ACTIVED;
+                                             
+            }            
+            if(1 == lc->lreg.btn.button_jg)/* low */
             {
-                rt_kprintf("SetTime = %d Fail and close the %s\n" ,tmrval,TIMER3);
-                err = rt_device_close(dev);
-                return err;
+                /* get the reload of the timer */
+                hwc.ch = TMR_CH_LASER_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;               
+                hwc.value = tval*1/3;
+                hwc.ch = TMR_CH_LASER_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                }
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
+                hwc.ch = TMR_CH_LASER_CURE;
+                rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
             }
-            /*enable timer pwm*/
-            tmrval = lcc->lreg.tval.tmr_value*60;
-            if (rt_device_write(dev, 2, &tmrval, sizeof(tmrval)) != sizeof(tmrval))
+            else if(2 == lc->lreg.btn.button_jg) /* middle */
             {
-                rt_kprintf("SetTime = %d Fail and close the %s\n" ,tmrval,TIMER3);
-                err = rt_device_close(dev);
-                return err;
+                hwc.ch = TMR_CH_LASER_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;
+                hwc.value = tval*2/3;
+                hwc.ch = TMR_CH_LASER_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                } 
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
             }
-            #endif
-            
-        }
-        else if(2 == lcc->lreg.btn.button_jg) /* middle */
-        {
-        }
-        else if(3 == lcc->lreg.btn.button_jg) /* hight */
-        {
-        }        
+            else if(3 == lc->lreg.btn.button_jg) /* hight */
+            {
+                hwc.ch = TMR_CH_LASER_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;
+                hwc.value = tval*3/3;
+                hwc.ch = TMR_CH_LASER_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                } 
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
+            }                                               
+        }      
         
     }
-    else /* close */
+    
+    if(LWC_ACTIVED == lc->lway[HEAT_CURE].status)
     {
-        
+        if(1 == lc->lreg.tval.tmr_lock)
+        { 
+            if(LWC_INACTIVE == lc->lcf[HEAT_CURE].cure_out_actived)
+            {                
+                lc->lcf[HEAT_CURE].cure_out_actived = LWC_ACTIVED;
+                                             
+            }            
+            if(1 == lc->lreg.btn.button_rl)/* low */
+            {
+                /* get the reload of the timer */
+                hwc.ch = TMR_CH_HEAT_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;               
+                hwc.value = tval*1/3;
+                hwc.ch = TMR_CH_HEAT_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                }
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
+                hwc.ch = TMR_CH_HEAT_CURE;
+                rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
+            }
+            else if(2 == lc->lreg.btn.button_rl) /* middle */
+            {
+                hwc.ch = TMR_CH_HEAT_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;
+                hwc.value = tval*2/3;
+                hwc.ch = TMR_CH_HEAT_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                } 
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
+            }
+            else if(3 == lc->lreg.btn.button_rl) /* hight */
+            {
+                hwc.ch = TMR_CH_HEAT_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;
+                hwc.value = tval*3/3;
+                hwc.ch = TMR_CH_HEAT_CURE;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                } 
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
+            }                                               
+        }              
     }
-    if(LWC_ACTIVED == lcc->lway[LASER_CURE].status)
-    {
-        switch(lcc->lreg.btn.button_jg)
-        {
-            case 1:
-            break;
-            case 2:
-            break;
-            case 3:
-            break;
-            default:
-            break;            
-        }   
-    }
-    return err;
+    
+    
 }
 
 
