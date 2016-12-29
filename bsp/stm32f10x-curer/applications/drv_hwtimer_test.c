@@ -4,7 +4,7 @@
 
 #ifdef RT_USING_HWTIMER
 #ifdef RT_USING_HWTIMER_TEST     
-/*
+
 static rt_err_t timer3a_timeout_cb(rt_device_t dev, rt_size_t size)
 {
     //rt_kprintf("HT %d\n", rt_tick_get());    
@@ -24,7 +24,7 @@ static rt_err_t timer4a_timeout_cb(rt_device_t dev, rt_size_t size)
     //}
     return 0;
 }
-*/
+
 int hwtimer(void)
 {
     rt_err_t err;
@@ -253,7 +253,7 @@ EXIT_TIM2:
         return -1;
     }
     
-    //rt_device_set_rx_indicate(dev_hwtimer3, timer3a_timeout_cb);
+    rt_device_set_rx_indicate(dev_hwtimer3, timer3a_timeout_cb);
     /* 计数时钟设置(默认1Mhz或支持的最小计数频率) */
     hwt3.value = timer3->freq;
     err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_FREQ, &hwt3);
@@ -334,7 +334,7 @@ EXIT_TIM2:
     }*/
     rt_kprintf("The timer will work on %d sec.\n", t/2);
     
-    rt_thread_delay(t*RT_TICK_PER_SECOND/2 + 1);
+    rt_thread_delay(t*RT_TICK_PER_SECOND/2 );
     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwt3);
     //ch = 2;   
     err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwt3);
@@ -369,17 +369,20 @@ EXIT_TIM2:
     {
         rt_kprintf("Set ch = %d pwm = %d ok,\n", hwt3.ch, hwt3.value);
     }
-    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_START, &hwt3);
-    /*
+    //rt_device_control(dev_hwtimer3, HWTIMER_CTRL_START, &hwt3);
+    tmr.sec = t/2;
     if (rt_device_write(dev_hwtimer3, hwt3.ch, &tmr, sizeof(tmr)) != sizeof(tmr))
     {
         rt_kprintf("SetTime Fail\n");
         goto EXIT_TIM3;
-    }*/
+    }
     rt_kprintf("The timer will work on %d sec.\n", t/2);
     
-    rt_thread_delay(t*RT_TICK_PER_SECOND/2 + 1);
+    rt_thread_delay(t*RT_TICK_PER_SECOND/2);
     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwt3);
+    rt_device_read(dev_hwtimer3, hwt3.ch, &tmr, sizeof(tmr));
+    rt_kprintf("Read: Sec = %d, Usec = %d\n", tmr.sec, tmr.usec);
+    rt_kprintf("Read: timer->cycle[%d] = %d, \n", hwt3.ch, timer3->cycles[hwt3.ch]);
     
 EXIT_TIM3:
     err = rt_device_close(dev_hwtimer3);

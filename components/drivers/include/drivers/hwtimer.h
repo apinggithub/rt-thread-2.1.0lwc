@@ -78,9 +78,10 @@ typedef struct rt_device_hwtimer
     rt_channel_t channel_set[5];       /* the timer channel no.*/   
     rt_uint8_t channel_type[5];     /* the timer work type ic,oc,pwm,and encode */    
     rt_int16_t pwm_dutycycle[5];   /* the pwm duty cycle */
-         
-    rt_int32_t overflow[4];            /* timer overflows */  
-    rt_int32_t cycles[4];              /* how many times will generate a timeout event after overflow */
+    
+    rt_uint8_t channel_lock[5];     /* channel visit lock*/
+    rt_int32_t overflow[5];            /* timer overflows */  
+    rt_int32_t cycles[5];              /* how many times will generate a timeout event after overflow */
     
     //rt_hwtimer_mode_t mode;         /* timing mode(oneshot/period) */
 } rt_device_hwtimer_t;

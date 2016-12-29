@@ -143,11 +143,6 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
-          <Key>DLGUARM</Key>
-          <Name></Name>
-        </SetRegEntry>
-        <SetRegEntry>
-          <Number>0</Number>
           <Key>ARMRTXEVENTFLAGS</Key>
           <Name>-L70 -Z18 -C0 -M0 -T1</Name>
         </SetRegEntry>
@@ -176,50 +171,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>379</LineNumber>
+          <LineNumber>425</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134230248</Address>
+          <Address>134281554</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>drivers\drv_hwtimer.c</Filename>
+          <Filename>..\..\components\drivers\hwtimer\hwtimer.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\rtthread_stm32\drivers/drv_hwtimer.c\379</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>2755</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134251180</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>Libraries\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\rtthread_stm32\Libraries/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c\2755</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>311</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134225856</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>applications\drv_hwtimer_test.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\rtthread_stm32\applications/drv_hwtimer_test.c\311</Expression>
+          <Expression>\\rtthread_stm32\../../components/drivers/hwtimer/hwtimer.c\425</Expression>
         </Bp>
       </Breakpoint>
       <Tracepoint>
@@ -568,7 +531,7 @@
 
   <Group>
     <GroupName>STM32F1xx_HAL_Driver</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

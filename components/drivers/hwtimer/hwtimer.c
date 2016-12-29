@@ -71,7 +71,6 @@ static rt_err_t rt_hwtimer_init(struct rt_device *dev)
     timer->reload = SystemCoreClock/(timer->prescaler + 1)/timer->freq - 1; 
     //timer_period = sysclk/(timer->prescaler + 1)/freq - 1;    
     
-
     //timer->mode = HWTIMER_MODE_PERIOD;
 
     if (timer->ops->drv_init)
@@ -124,7 +123,7 @@ static rt_err_t rt_hwtimer_close(struct rt_device *dev)
 
     return result;
 }*/
-
+/* pos ---> channel of timer */
 static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     rt_device_hwtimer_t *timer;
@@ -163,20 +162,25 @@ static rt_size_t rt_hwtimer_write(struct rt_device *dev, rt_off_t pos, const voi
 
     if (size != sizeof(rt_hwtimer_tmr_t))
         return 0;
-    
-    //calculater the cycles to auto reload value
-    timer->cycles[pos] = timeout_calc(timer, pos, (rt_hwtimer_tmr_t*)buffer);
+    if(1 == timer->channel_lock[pos]) 
+    {
+        return 0;
+    }
+    else
+    {        
+        //calculater the cycles to auto reload value
+        timer->cycles[pos] = timeout_calc(timer, pos, (rt_hwtimer_tmr_t*)buffer);
 
-    //if ((timer->cycles <= 1) && (timer->mode == HWTIMER_MODE_ONESHOT))
-    //{
-    //    opm = HWTIMER_MODE_ONESHOT;
-    //}
-    timer->ops->drv_stop(timer,pos);
-    timer->overflow[pos] = 0;
-   
-    if (timer->ops->drv_start(timer, pos) != RT_EOK)
-        size = 0;
-
+        //if ((timer->cycles <= 1) && (timer->mode == HWTIMER_MODE_ONESHOT))
+        //{
+        //    opm = HWTIMER_MODE_ONESHOT;
+        //}
+        timer->ops->drv_stop(timer,pos);
+        timer->overflow[pos] = 0;
+        timer->channel_lock[pos] = 1; 
+        if (timer->ops->drv_start(timer, pos) != RT_EOK)
+            size = 0;
+    }
     return size;
 }
 
@@ -203,14 +207,23 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
                 result = -RT_ERROR;
                 break;
             }
-            if (timer->ops->drv_start != RT_NULL)
+            if(1 == timer->channel_lock[hwt->ch]) 
             {
-                timer->ops->drv_start(timer,hwt->ch);
+                result = -RT_EBUSY;
+                break;
             }
             else
-            {
-                result = -RT_ENOSYS;
+            {                
+                if(timer->ops->drv_start != RT_NULL)
+                {
+                    timer->ops->drv_start(timer,hwt->ch);
+                }
+                else
+                {
+                    result = -RT_ENOSYS;
+                }
             }
+            
         }
         break;
         case HWTIMER_CTRL_STOP:
@@ -394,32 +407,33 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
 
     return result;
 }
-#if 0
+
 void rt_device_hwtimer_isr(rt_device_hwtimer_t *timer, rt_uint8_t ch )
 {
     RT_ASSERT(timer != RT_NULL);
-
-
-    timer->overflow[ch] ++;/* add in end of the timer period */
-
-    if (timer->cycles[ch] != 0)
+    
+    if(1 == timer->channel_lock[ch])
     {
-        timer->cycles[ch] --;
-    }
-    else //if (timer->cycles == 0)
-    {       
-        if (timer->ops->drv_stop != RT_NULL)
-        {
-            timer->ops->drv_stop(timer,ch);
-        }        
+        timer->overflow[ch]++;/* add in end of the timer period */
 
-        if (timer->parent.rx_indicate != RT_NULL)
+        if (timer->cycles[ch] != 0)
         {
-            timer->parent.rx_indicate(&timer->parent, sizeof(struct rt_hwtimer_tmr));
+            timer->cycles[ch]--;
+        }
+        else //if (timer->cycles[ch] == 0)
+        {       
+            if (timer->ops->drv_stop != RT_NULL)
+            {
+                timer->ops->drv_stop(timer,ch);
+            }        
+
+            if (timer->parent.rx_indicate != RT_NULL)
+            {
+                timer->parent.rx_indicate(&timer->parent, sizeof(struct rt_hwtimer_tmr));
+            }            
         }
     }
 }
-#endif
 
 rt_err_t rt_device_hwtimer_register(rt_device_hwtimer_t *timer, const char *name, void *user_data)
 {

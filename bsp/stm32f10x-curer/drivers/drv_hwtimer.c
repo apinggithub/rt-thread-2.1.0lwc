@@ -362,6 +362,7 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
 
 static rt_err_t drv_timer_start(rt_device_hwtimer_t *timer, rt_uint8_t ch)//, rt_hwtimer_mode_t opmode
 {
+    rt_err_t err = RT_EOK;
     TIM_TypeDef *tim;
     drv_hwtimer_t *hwtim; 
     //uint16_t m;
@@ -380,12 +381,14 @@ static rt_err_t drv_timer_start(rt_device_hwtimer_t *timer, rt_uint8_t ch)//, rt
     {
         case DRV_TIM_CH_TYPE_PWM: 
         {
-            HAL_TIM_PWM_Start(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            //HAL_TIM_PWM_Start(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            HAL_TIM_PWM_Start_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
         }
         break;
         case DRV_TIM_CH_TYPE_OC: 
         {
-            HAL_TIM_OC_Start(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            //HAL_TIM_OC_Start(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            HAL_TIM_OC_Start_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
         }
         break;
         case DRV_TIM_CH_TYPE_IC: 
@@ -400,11 +403,12 @@ static rt_err_t drv_timer_start(rt_device_hwtimer_t *timer, rt_uint8_t ch)//, rt
         break;
         default: /* default HWTIMER_TYPE_BASE on output */
         {
+            __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
             HAL_TIM_Base_Start(&(hwtim->TimerHandle));
         }
         break;
     }           
-    return RT_EOK;
+    return err;
 }
 
 static void drv_timer_stop(rt_device_hwtimer_t *timer, rt_uint8_t ch)
@@ -422,12 +426,16 @@ static void drv_timer_stop(rt_device_hwtimer_t *timer, rt_uint8_t ch)
     {
         case DRV_TIM_CH_TYPE_PWM: 
         {
-            HAL_TIM_PWM_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            //HAL_TIM_PWM_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            HAL_TIM_PWM_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            timer->channel_lock[ch] = 0;
         }
         break;
         case DRV_TIM_CH_TYPE_OC: 
         {
-            HAL_TIM_OC_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            //HAL_TIM_OC_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            HAL_TIM_OC_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
+            timer->channel_lock[ch] = 0;
         }
         break;
         case DRV_TIM_CH_TYPE_IC: 
@@ -441,8 +449,10 @@ static void drv_timer_stop(rt_device_hwtimer_t *timer, rt_uint8_t ch)
         }
         break;
         default: /* default HWTIMER_TYPE_BASE on output */
-        {           
+        {            
             HAL_TIM_Base_Stop(&(hwtim->TimerHandle));
+            __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);     
+            __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);    
         }
         break;
     }              
@@ -478,11 +488,11 @@ static rt_err_t drv_timer_set_frequency(rt_device_hwtimer_t *timer, rt_uint32_t 
     if( freq != 0) 
     {        
         timer->reload= sysclk/(timer->prescaler + 1)/freq - 1;
-        __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);     
-        __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);    
+        //__HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);     
+        //__HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);    
         __HAL_TIM_SET_PRESCALER(&(hwtim->TimerHandle),timer->prescaler);        
         __HAL_TIM_SET_AUTORELOAD(&(hwtim->TimerHandle), timer->reload);                                                    
-        __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
+        //__HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
     }                            
     else
     {            
@@ -504,10 +514,10 @@ rt_err_t drv_timer_set_prescaler(rt_device_hwtimer_t *timer,rt_uint32_t val)
     tim = hwtim->TimerHandle.Instance;
     
     hwtim->TimerHandle.Instance = tim;   
-    __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);  
-    __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);    
+    //__HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);  
+    //__HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);    
     __HAL_TIM_SET_PRESCALER(&(hwtim->TimerHandle),val);                                               
-    __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
+    //__HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
 
    return err; 
 }
@@ -539,10 +549,10 @@ static rt_err_t drv_timer_set_counter(rt_device_hwtimer_t *timer,rt_uint32_t val
     
     hwtim->TimerHandle.Instance = tim;
     
-    __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);    
-    __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);     
+    //__HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);    
+    //__HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);     
     __HAL_TIM_SET_COUNTER(&(hwtim->TimerHandle),val);                                     
-    __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
+    //__HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
     
     return err;
 }
@@ -573,10 +583,10 @@ static rt_err_t drv_timer_set_autoreload(rt_device_hwtimer_t *timer,rt_uint32_t 
     
     hwtim->TimerHandle.Instance = tim;
     
-    __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);  
-    __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);       
+    //__HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);  
+    //__HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);       
     __HAL_TIM_SET_AUTORELOAD(&(hwtim->TimerHandle),val);                                                               
-    __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
+    //__HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
     
     return err;
 }
@@ -624,28 +634,37 @@ static rt_err_t drv_timer_set_compare(rt_device_hwtimer_t *timer,rt_uint8_t ch,r
     
     hwtim->TimerHandle.Instance = tim;
         
-    __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE); 
-    __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE); 
+    
     switch(ch)
     {
         case HWTIMER_CH1:
-            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_1,val);    
+            __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC1); 
+            __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_CC1); 
+            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_1,val);  
+            __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC1);
         break;
         case HWTIMER_CH2:
-            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_2,val);    
+            __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC2); 
+            __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_CC2);
+            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_2,val);
+            __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC2);
         break;
         case HWTIMER_CH3:
-            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_3,val);    
+            __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC3); 
+            __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_CC3);
+            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_3,val);   
+            __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC3);
         break;
         case HWTIMER_CH4:
-            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_4,val);    
+            __HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC4); 
+            __HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_CC4);
+            __HAL_TIM_SET_COMPARE(&(hwtim->TimerHandle),TIM_CHANNEL_4,val);
+            __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_CC4);
         break;
         default:
         break;
     }
-                                             
-    __HAL_TIM_ENABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);
-    
+                                                
     return err;
 }
 
@@ -711,9 +730,84 @@ void TIM4_IRQHandler(void)
 }
 #endif /*RT_USING_HWTIM4*/
 
+void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    
+} 
+
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+    #ifdef RT_USING_HWTIM2
+    if( TIM2 == htim->Instance )
+    {       
+        if(HAL_TIM_ACTIVE_CHANNEL_1 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH1);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_2 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH2);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_3 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH3);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_4 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH4);
+        }       
+    }
+    #endif
+    #ifdef RT_USING_HWTIM3
+    if( TIM3 == htim->Instance )
+    {
+        if(HAL_TIM_ACTIVE_CHANNEL_1 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH1);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_2 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH2);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_3 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH3);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_4 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH4);
+        }        
+    }
+    #endif
+    #ifdef RT_USING_HWTIM4
+    if( TIM4 == htim->Instance )
+    {        
+        if(HAL_TIM_ACTIVE_CHANNEL_1 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH1);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_2 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH2);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_3 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH3);
+        }
+        else if(HAL_TIM_ACTIVE_CHANNEL_4 == htim->Channel)
+        {
+            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH4);
+        }       
+    }
+    #endif
+}
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+    
+}
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
- #if 0
+    /* All channel use the same  TIM_FLAG_UPDATE */
     #ifdef RT_USING_HWTIM6
     if( TIM6 == htim->Instance )
     {
@@ -724,69 +818,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     #endif
     #ifdef RT_USING_HWTIM2
     if( TIM2 == htim->Instance )
-    {       
-        if(TIM_CHANNEL_1 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH1);
-        }
-        else if(TIM_CHANNEL_2 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH2);
-        }
-        else if(TIM_CHANNEL_3 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH3);
-        }
-        else if(TIM_CHANNEL_4 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer2, HWTIMER_CH4);
-        }
+    {              
+        rt_device_hwtimer_isr(&rttimer2, HWTIMER_BASE); /* base timer no channel output*/       
     }
     #endif
     #ifdef RT_USING_HWTIM3
     if( TIM3 == htim->Instance )
     {
-
-        if(TIM_CHANNEL_1 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH1);
-        }
-        else if(TIM_CHANNEL_2 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH2);
-        }
-        else if(TIM_CHANNEL_3 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH3);
-        }
-        else if(TIM_CHANNEL_4 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer3, HWTIMER_CH4);
-        }
+        rt_device_hwtimer_isr(&rttimer3, HWTIMER_BASE); /* base timer no channel output*/        
     }
     #endif
     #ifdef RT_USING_HWTIM4
     if( TIM4 == htim->Instance )
-    {        
-        if(TIM_CHANNEL_1 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH1);
-        }
-        else if(TIM_CHANNEL_2 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH2);
-        }
-        else if(TIM_CHANNEL_3 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH3);
-        }
-        else if(TIM_CHANNEL_4 == htim->Channel)
-        {
-            rt_device_hwtimer_isr(&rttimer4, HWTIMER_CH4);
-        }
+    {                
+        rt_device_hwtimer_isr(&rttimer4, HWTIMER_BASE); /* base timer no channel output*/       
     }
     #endif
-#endif    
+   
 }
 
 int stm32_hwtimer_init(void)
@@ -794,9 +842,9 @@ int stm32_hwtimer_init(void)
 #ifdef RT_USING_HWTIM6      
     rttimer6.info = &_info;
     rttimer6.ops  = &_ops;
-
+    rttimer6.channel_set[HWTIMER_BASE].status = HW_ENABLE;
     hwtimer6.TimerHandle.Instance = TIM6;       
-    rt_device_hwtimer_register(&rttimer6, "timer6", &hwtimer6);    
+    rt_device_hwtimer_register(&rttimer6, "timer6", &hwtimer6);
 #endif /*RT_USING_HWTIM6*/
 /////////////////////////////////////////////////////////////////////////////
 #ifdef RT_USING_HWTIM2       
@@ -804,8 +852,8 @@ int stm32_hwtimer_init(void)
     rttimer2.ops  = &_ops;
    
 #ifdef RT_USING_HWTIM2_CH1   
-    rttimer2.channel[HWTIMER_CH1].status = HW_ENABLE;
-    rttimer2.channel[HWTIMER_CH1].channel = (uint8_t)TIM_CHANNEL_1;
+    rttimer2.channel_set[HWTIMER_CH1].status = HW_ENABLE;
+    rttimer2.channel_set[HWTIMER_CH1].channel = (uint8_t)TIM_CHANNEL_1;
 #if 1 == RT_USING_HWTIM2_CH1_PWM
     rttimer2.channel_type[HWTIMER_CH1] = DRV_TIM_CH_TYPE_PWM;
     rttimer2.pwm_dutycycle[HWTIMER_CH1] = 10; 
@@ -818,8 +866,8 @@ int stm32_hwtimer_init(void)
     rttimer2.channel_set[HWTIMER_CH1].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM2_CH1 */  
 #ifdef RT_USING_HWTIM2_CH2   
-    rttimer2.channel[HWTIMER_CH2].status = HW_ENABLE;
-    rttimer2.channel[HWTIMER_CH2].channel = (uint8_t)TIM_CHANNEL_2;
+    rttimer2.channel_set[HWTIMER_CH2].status = HW_ENABLE;
+    rttimer2.channel_set[HWTIMER_CH2].channel = (uint8_t)TIM_CHANNEL_2;
 #if 1 == RT_USING_HWTIM2_CH2_PWM
     rttimer2.channel_type[HWTIMER_CH2] = DRV_TIM_CH_TYPE_PWM;
     rttimer2.pwm_dutycycle[HWTIMER_CH2] = 10; 
@@ -832,8 +880,8 @@ int stm32_hwtimer_init(void)
     rttimer2.channel_set[HWTIMER_CH2].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM2_CH2 */ 
 #ifdef RT_USING_HWTIM2_CH3   
-    rttimer2.channel[HWTIMER_CH3].status = HW_ENABLE;
-    rttimer2.channel[HWTIMER_CH3].channel = (uint8_t)TIM_CHANNEL_3;
+    rttimer2.channel_set[HWTIMER_CH3].status = HW_ENABLE;
+    rttimer2.channel_set[HWTIMER_CH3].channel = (uint8_t)TIM_CHANNEL_3;
 #if 1 == RT_USING_HWTIM2_CH3_PWM
     rttimer2.channel_type[HWTIMER_CH3] = DRV_TIM_CH_TYPE_PWM;
     rttimer2.pwm_dutycycle[HWTIMER_CH3] = 10; 
@@ -846,8 +894,8 @@ int stm32_hwtimer_init(void)
     rttimer2.channel_set[HWTIMER_CH3].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM2_CH3 */
 #ifdef RT_USING_HWTIM2_CH4   
-    rttimer2.channel[HWTIMER_CH4].status = HW_ENABLE;
-    rttimer2.channel[HWTIMER_CH4].channel = (uint8_t)TIM_CHANNEL_4;
+    rttimer2.channel_set[HWTIMER_CH4].status = HW_ENABLE;
+    rttimer2.channel_set[HWTIMER_CH4].channel = (uint8_t)TIM_CHANNEL_4;
 #if 1 == RT_USING_HWTIM2_CH4_PWM
     rttimer2.channel_type[HWTIMER_CH4] = DRV_TIM_CH_TYPE_PWM;
     rttimer2.pwm_dutycycle[HWTIMER_CH4] = 10; 
