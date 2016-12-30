@@ -428,14 +428,14 @@ static void drv_timer_stop(rt_device_hwtimer_t *timer, rt_uint8_t ch)
         {
             //HAL_TIM_PWM_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
             HAL_TIM_PWM_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
-            timer->channel_lock[ch] = 0;
+            
         }
         break;
         case DRV_TIM_CH_TYPE_OC: 
         {
             //HAL_TIM_OC_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
             HAL_TIM_OC_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
-            timer->channel_lock[ch] = 0;
+            
         }
         break;
         case DRV_TIM_CH_TYPE_IC: 
@@ -672,7 +672,7 @@ static rt_err_t drv_timer_set_compare(rt_device_hwtimer_t *timer,rt_uint8_t ch,r
 static const struct rt_hwtimer_info _info =
 {
     1000000,           /* the maximum count frequency can be set */
-    20,                /* the minimum count frequency can be set */
+    1,                  /* the minimum count frequency can be set */
     0xFFFF,            /* the maximum counter value */
     HWTIMER_CNTMODE_UP,/* Increment or Decreasing count mode */
 };
@@ -811,9 +811,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     #ifdef RT_USING_HWTIM6
     if( TIM6 == htim->Instance )
     {
-        rt_pin_write(20, led3sw);
+        rt_pin_write(54, led3sw);
         led3sw = (~led3sw)&0x01;
-        rt_device_hwtimer_isr(&rttimer6);
+        rt_device_hwtimer_isr(&rttimer6,HWTIMER_BASE);
     }
     #endif
     #ifdef RT_USING_HWTIM2
@@ -843,6 +843,7 @@ int stm32_hwtimer_init(void)
     rttimer6.info = &_info;
     rttimer6.ops  = &_ops;
     rttimer6.channel_set[HWTIMER_BASE].status = HW_ENABLE;
+    rttimer6.channel_lock[HWTIMER_BASE] = 0;
     hwtimer6.TimerHandle.Instance = TIM6;       
     rt_device_hwtimer_register(&rttimer6, "timer6", &hwtimer6);
 #endif /*RT_USING_HWTIM6*/
@@ -852,6 +853,7 @@ int stm32_hwtimer_init(void)
     rttimer2.ops  = &_ops;
    
 #ifdef RT_USING_HWTIM2_CH1   
+    rttimer6.channel_lock[HWTIMER_CH1] = 0;
     rttimer2.channel_set[HWTIMER_CH1].status = HW_ENABLE;
     rttimer2.channel_set[HWTIMER_CH1].channel = (uint8_t)TIM_CHANNEL_1;
 #if 1 == RT_USING_HWTIM2_CH1_PWM
@@ -866,6 +868,7 @@ int stm32_hwtimer_init(void)
     rttimer2.channel_set[HWTIMER_CH1].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM2_CH1 */  
 #ifdef RT_USING_HWTIM2_CH2   
+    rttimer2.channel_lock[HWTIMER_CH2] = 0;
     rttimer2.channel_set[HWTIMER_CH2].status = HW_ENABLE;
     rttimer2.channel_set[HWTIMER_CH2].channel = (uint8_t)TIM_CHANNEL_2;
 #if 1 == RT_USING_HWTIM2_CH2_PWM
@@ -879,7 +882,8 @@ int stm32_hwtimer_init(void)
 #else
     rttimer2.channel_set[HWTIMER_CH2].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM2_CH2 */ 
-#ifdef RT_USING_HWTIM2_CH3   
+#ifdef RT_USING_HWTIM2_CH3  
+    rttimer2.channel_lock[HWTIMER_CH3] = 0;
     rttimer2.channel_set[HWTIMER_CH3].status = HW_ENABLE;
     rttimer2.channel_set[HWTIMER_CH3].channel = (uint8_t)TIM_CHANNEL_3;
 #if 1 == RT_USING_HWTIM2_CH3_PWM
@@ -893,7 +897,8 @@ int stm32_hwtimer_init(void)
 #else
     rttimer2.channel_set[HWTIMER_CH3].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM2_CH3 */
-#ifdef RT_USING_HWTIM2_CH4   
+#ifdef RT_USING_HWTIM2_CH4 
+    rttimer2.channel_lock[HWTIMER_CH4] = 0;
     rttimer2.channel_set[HWTIMER_CH4].status = HW_ENABLE;
     rttimer2.channel_set[HWTIMER_CH4].channel = (uint8_t)TIM_CHANNEL_4;
 #if 1 == RT_USING_HWTIM2_CH4_PWM
@@ -917,6 +922,7 @@ int stm32_hwtimer_init(void)
     rttimer3.ops  = &_ops;
     
 #ifdef  RT_USING_HWTIM3_CH1   
+    rttimer3.channel_lock[HWTIMER_CH1] = 0;
     rttimer3.channel_set[HWTIMER_CH1].status = HW_ENABLE;
     rttimer3.channel_set[HWTIMER_CH1].channel = (uint8_t)TIM_CHANNEL_1;
 #if 1 == RT_USING_HWTIM3_CH1_PWM
@@ -931,6 +937,7 @@ int stm32_hwtimer_init(void)
     rttimer3.channel_set[HWTIMER_CH1].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM3_CH1 */
 #ifdef  RT_USING_HWTIM3_CH2   
+    rttimer3.channel_lock[HWTIMER_CH2] = 0;
     rttimer3.channel_set[HWTIMER_CH2].status = HW_ENABLE;
     rttimer3.channel_set[HWTIMER_CH2].channel = (uint8_t)TIM_CHANNEL_2;
 #if 1 == RT_USING_HWTIM3_CH2_PWM
@@ -944,7 +951,8 @@ int stm32_hwtimer_init(void)
 #else
     rttimer3.channel_set[HWTIMER_CH2].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM3_CH2 */
-#ifdef  RT_USING_HWTIM3_CH3   
+#ifdef  RT_USING_HWTIM3_CH3  
+    rttimer3.channel_lock[HWTIMER_CH3] = 0;
     rttimer3.channel_set[HWTIMER_CH3].status = HW_ENABLE;
     rttimer3.channel_set[HWTIMER_CH3].channel = (uint8_t)TIM_CHANNEL_3;
 #if(1 == RT_USING_HWTIM3_CH3_PWM )
@@ -959,6 +967,7 @@ int stm32_hwtimer_init(void)
     rttimer3.channel[HWTIMER_CH3].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM3_CH3 */
 #ifdef RT_USING_HWTIM3_CH4  
+    rttimer3.channel_lock[HWTIMER_CH4] = 0;
     rttimer3.channel_set[HWTIMER_CH4].status = HW_ENABLE;
     rttimer3.channel_set[HWTIMER_CH4].channel = (uint8_t)TIM_CHANNEL_4;
 #if 1 == RT_USING_HWTIM3_CH4_PWM
@@ -980,7 +989,8 @@ int stm32_hwtimer_init(void)
 #ifdef RT_USING_HWTIM4       
     rttimer4.info = &_info;
     rttimer4.ops  = &_ops;
-#ifdef RT_USING_HWTIM4_CH1   
+#ifdef RT_USING_HWTIM4_CH1 
+    rttimer4.channel_lock[HWTIMER_CH1] = 0;
     rttimer4.channel_set[HWTIMER_CH1].status = HW_ENABLE;
     rttimer4.channel_set[HWTIMER_CH1].channel = (uint8_t)TIM_CHANNEL_1;
 #if 1 == RT_USING_HWTIM4_CH1_PWM
@@ -995,6 +1005,7 @@ int stm32_hwtimer_init(void)
     rttimer4.channel[HWTIMER_CH1].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM4_CH1 */
 #ifdef RT_USING_HWTIM4_CH2
+    rttimer4.channel_lock[HWTIMER_CH2] = 0;
     rttimer4.channel_set[HWTIMER_CH2].status = HW_ENABLE;
     rttimer4.channel_set[HWTIMER_CH2].channel = (uint8_t)TIM_CHANNEL_2;
 #if 1 == RT_USING_HWTIM4_CH2_PWM
@@ -1009,6 +1020,7 @@ int stm32_hwtimer_init(void)
     rttimer4.channel[HWTIMER_CH2].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM4_CH2 */     
 #ifdef RT_USING_HWTIM4_CH3 
+    rttimer4.channel_lock[HWTIMER_CH3] = 0;
     rttimer4.channel_set[HWTIMER_CH3].status = HW_ENABLE;
     rttimer4.channel_set[HWTIMER_CH3].channel = (uint8_t)TIM_CHANNEL_3;
 #if 1 == RT_USING_HWTIM4_CH3_PWM
@@ -1023,6 +1035,7 @@ int stm32_hwtimer_init(void)
     rttimer4.channel[HWTIMER_CH3].status = HW_DISABLE;
 #endif /* RT_USING_HWTIM4_CH3 */   
 #ifdef RT_USING_HWTIM4_CH4
+    rttimer4.channel_lock[HWTIMER_CH4] = 0;
     rttimer4.channel_set[HWTIMER_CH4].status = HW_ENABLE; 
     rttimer4.channel_set[HWTIMER_CH4].channel = (uint8_t)TIM_CHANNEL_4;
 #if 1 == RT_USING_HWTIM4_CH4_PWM

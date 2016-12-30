@@ -3,8 +3,31 @@
 #include <finsh.h>
 
 #ifdef RT_USING_HWTIMER
-#ifdef RT_USING_HWTIMER_TEST     
-
+#ifdef RT_USING_HWTIMER_TEST 
+extern const float frq[][6];/* = {
+    {26.0,  17.0,   9.0,    5.0,    0.5,    4.0},
+    {1.0,   0.5,    0.5,    2.5,    1.5,    5.0},
+    {0.5,   1.5,    2.0,    6.5,    3.5,    2.5},
+    {1.5,   5.0,    0.5,    0.5,    4.5,    2.0},
+    {26.0,  13.0,   5.0,    4.0,    1.5,    50.0},
+    {9.0,   4.5,    2.0,    5.5,    6.5,    1.5},
+    {0.5,   0.75,   6.5,    1.5,    9.5,    1.5},
+    {3.5,   0.5,    9.0,    2.6,    5.0,    1.3}
+};*/
+#ifdef RT_USING_HWTIM6
+static rt_err_t timer6a_timeout_cb(rt_device_t dev, rt_size_t size)
+{
+    //rt_kprintf("HT %d\n", rt_tick_get());    
+    //if(dev == dev_hwtimer3)
+    //{
+        rt_kprintf("timer6 stop in timeout_cb \n");  
+    //}
+    
+    return 0;
+} 
+#endif /* RT_USING_HWTIM6 */
+#if 0
+#ifdef RT_USING_HWTIM3
 static rt_err_t timer3a_timeout_cb(rt_device_t dev, rt_size_t size)
 {
     //rt_kprintf("HT %d\n", rt_tick_get());    
@@ -14,7 +37,9 @@ static rt_err_t timer3a_timeout_cb(rt_device_t dev, rt_size_t size)
     //}
     
     return 0;
-}    
+} 
+#endif /* RT_USING_HWTIM3 */
+#ifdef RT_USING_HWTIM4
 static rt_err_t timer4a_timeout_cb(rt_device_t dev, rt_size_t size)
 {
     //rt_kprintf("HT %d\n", rt_tick_get());    
@@ -24,11 +49,12 @@ static rt_err_t timer4a_timeout_cb(rt_device_t dev, rt_size_t size)
     //}
     return 0;
 }
-
+#endif /*RT_USING_HWTIM4 */
+#endif
 int hwtimer(void)
 {
     rt_err_t err;
-    rt_hwtimer_tmrval_t tmr;
+    //rt_hwtimer_tmrval_t tmr;
 
     rt_tick_t tick;
     //rt_hwtimer_mode_t mode;
@@ -42,39 +68,46 @@ int hwtimer(void)
 #ifdef RT_USING_HWTIM6
     
     #define TIMER6   "timer6"
+    rt_device_t dev_hwtimer6 = RT_NULL;
+    static uint16_t val6;
+    rt_hwtimer_chval_t hwc6;
+    rt_hwtimer_tmrval_t hwt6;
     
-    rt_pin_mode(20, PIN_MODE_OUTPUT);// the port PF8
+    hwc6.ch = HWTIMER_BASE;
+    rt_pin_mode(54, PIN_MODE_OUTPUT);// the port PD2
    
-    if ((dev = rt_device_find(TIMER6)) == RT_NULL)
+    if((dev_hwtimer6 = rt_device_find(TIMER6)) == RT_NULL)
     {
         rt_kprintf("No Device: %s\n", TIMER6);
         return -1;
     }
     
-    timer = (rt_device_hwtimer_t *)dev;  
-    timer->freq = freq;
-    timer->prescaler = 71;
-    timer->reload = 0;
+    rt_device_hwtimer_t *timer6 = (rt_device_hwtimer_t *)dev_hwtimer6;
+    timer6 = (rt_device_hwtimer_t *)dev_hwtimer6;  
+    timer6->freq = 1;
+    timer6->prescaler = 71;
+    timer6->reload = 0;
     
     rt_kprintf("Now test the %s \n", TIMER6);
        
-    if (rt_device_open(dev, RT_DEVICE_OFLAG_RDWR) != RT_EOK)
+    if (rt_device_open(dev_hwtimer6, RT_DEVICE_OFLAG_RDWR) != RT_EOK)
     {
         rt_kprintf("Open %s Fail\n", TIMER6);
         return -1;
     }
     
-    rt_device_set_rx_indicate(dev, timer_timeout_cb);
+    rt_device_set_rx_indicate(dev_hwtimer6, timer6a_timeout_cb);
     /* 计数时钟设置(默认1Mhz或支持的最小计数频率) */
-    err = rt_device_control(dev, HWTIMER_CTRL_FREQ_SET, &freq);
+    hwc6.value = timer6->freq;
+    err = rt_device_control(dev_hwtimer6, HWTIMER_CTRL_SET_FREQ, &hwc6);
     if (err != RT_EOK)
     {
-        rt_kprintf("Set Freq = %dHz Fail\n", freq);
+        rt_kprintf("Set Freq = %dHz Fail\n", hwc6.value);
         goto EXIT_TIM6;
     }
     else
     {
-        rt_kprintf("Set Freq = %dHz ok\n", freq);
+        rt_kprintf("Set Freq = %dHz ok\n", hwc6.value);
     }
 
     /* 周期模式 */
@@ -84,28 +117,24 @@ int hwtimer(void)
     tick = rt_tick_get();
     rt_kprintf("Start Timer> Tick: %d\n", tick);
     /* 设置定时器超时值并启动定时器 */
-    val.sec = t;
-    val.usec = 0;
-    rt_kprintf("SetTime: Sec %d, Usec %d\n", val.sec, val.usec);
-    
-    for( uint8_t i = 0; i < 4; i++)
+    hwt6.sec = 10;
+    hwt6.usec = 0;
+    rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt6.sec, hwt6.usec);   
+    if (rt_device_write(dev_hwtimer6, hwc6.ch, &hwt6, sizeof(hwt6)) != sizeof(hwt6))
     {
-        
-        if (rt_device_write(dev, i, &val, sizeof(val)) != sizeof(val))
-        {
-            rt_kprintf("SetTime Fail\n");
-            goto EXIT_TIM6;
-        }
-        else
-        {
-            rt_kprintf("Set timer work on  = %dsec. on channel No.%d ok.\n", val.sec,i);
-        }
-    }  
-    rt_kprintf("NO. 1 timer on %d sec.\n", t/2);
-    rt_thread_delay(t*RT_TICK_PER_SECOND/2);
-    
+        rt_kprintf("SetTime Fail\n");
+        goto EXIT_TIM6;
+    }
+    else
+    {
+        rt_kprintf("Set timer work on  = %dsec. on channel No.%d ok.\n", hwt6.sec,hwc6.ch);
+    }
+      
+    rt_kprintf("NO. 1 timer on %d sec.\n", t*2);
+    rt_thread_delay(2*t*RT_TICK_PER_SECOND);
+    /*
     tempfreq = freq - 200;
-    err = rt_device_control(dev, HWTIMER_CTRL_FREQ_SET, &tempfreq);
+    err = rt_device_control(dev_hwtimer6, HWTIMER_CTRL_SET_FREQ, &tempfreq);
     if (err != RT_EOK)
     {
         rt_kprintf("Set Freq = %dHz Fail\n", tempfreq);
@@ -117,16 +146,16 @@ int hwtimer(void)
     }
     rt_kprintf("NO. 2 timer on %d sec.\n", t/2);
     rt_thread_delay(t*RT_TICK_PER_SECOND/2);
-    
+    */
     /* stop the timer */
-    err = rt_device_control(dev, HWTIMER_CTRL_STOP, RT_NULL);
+    err = rt_device_control(dev_hwtimer6, HWTIMER_CTRL_STOP, RT_NULL);
     rt_kprintf("Timer Stoped\n");
     /* read the counter */
-    rt_device_read(dev, 0, &val, sizeof(val));
-    rt_kprintf("Read: Sec = %d, Usec = %d\n", val.sec, val.usec);
+    rt_device_read(dev_hwtimer6, 0, &hwt6, sizeof(hwt6));
+    rt_kprintf("Read: Sec = %d, Usec = %d\n", hwt6.sec, hwt6.usec);
 
 EXIT_TIM6:
-    err = rt_device_close(dev);
+    err = rt_device_close(dev_hwtimer6);
     rt_kprintf("Close %s\n", TIMER6);
     
 #endif /*RT_USING_HWTIM6*/    
@@ -389,7 +418,7 @@ EXIT_TIM3:
     
 #endif /*RT_USING_HWTIM3*/ 
 #endif
-   
+#if 0   
 #ifdef RT_USING_HWTIM4
     #define TIMER4   "timer4"
     rt_device_t dev_hwtimer4 = RT_NULL;  
@@ -512,7 +541,7 @@ EXIT_TIM4:
     rt_kprintf("Close %s\n", TIMER4);
     
 #endif /*RT_USING_HWTIM4*/     
-
+#endif
     return err;
 
 }

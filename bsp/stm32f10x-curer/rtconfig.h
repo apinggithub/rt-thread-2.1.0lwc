@@ -48,7 +48,7 @@
 #define RT_USING_HWTIMER  /*hardware timer driver switch*/
 #define RT_USING_HWTIMER_TEST  /*hardware timer driver test cmd in finsh*/
 
-//#define RT_USING_HWTIM6 /*the base hardtimer TIM6*/
+#define RT_USING_HWTIM6 /*the base hardtimer TIM6*/
 //#define RT_USING_HWTIM2   /*the general hardtimer TIM2*/
 
 #define RT_USING_HWTIM3   /*the general hardtimer TIM2*/
@@ -148,7 +148,7 @@
 
 /*Using Pin select as device*/
 #define RT_USING_PIN
-#define RT_USING_PIN_NUMBERS        144 /*[ 64, 100, 144 ] */
+#define RT_USING_PIN_NUMBERS        64 /*[ 64, 100, 144 ] */
 
 /* SECTION: Console options */
 #define RT_USING_CONSOLE

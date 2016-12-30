@@ -247,6 +247,7 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
             }
             if (timer->ops->drv_stop != RT_NULL)
             {
+                timer->channel_lock[hwc->ch] = 0;
                 timer->ops->drv_stop(timer,hwc->ch);
             }
             else
@@ -268,6 +269,32 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
             {
                 result = -RT_ERROR;
                 break;
+            }
+            else
+            {
+                if((timer->info->maxfreq > hwc->value )&&(20 <= hwc->value))
+                {
+                    timer->prescaler = SystemCoreClock/1000000 - 1; /*set the defualt prescaler is 71 */
+                }
+                else if(20 > hwc->value)
+                {
+                    //timer->freq = timer->info->minfreq;
+                    timer->prescaler = SystemCoreClock/10000 - 1; /*set the defualt prescaler is 7199 */
+                }
+                if (timer->ops->drv_set_prescaler != RT_NULL)
+                {
+                    result = timer->ops->drv_set_prescaler(timer, hwc->value);
+                    if (result != RT_EOK)
+                    {
+                        result = -RT_ERROR;
+                        break;
+                    }
+                }
+                else
+                {
+                    result = -RT_EEMPTY;
+                }
+                
             }
             if (timer->ops->drv_set_frequency != RT_NULL)
             {
@@ -424,6 +451,7 @@ void rt_device_hwtimer_isr(rt_device_hwtimer_t *timer, rt_uint8_t ch )
         {       
             if (timer->ops->drv_stop != RT_NULL)
             {
+                timer->channel_lock[ch] = 0;
                 timer->ops->drv_stop(timer,ch);
             }        
 

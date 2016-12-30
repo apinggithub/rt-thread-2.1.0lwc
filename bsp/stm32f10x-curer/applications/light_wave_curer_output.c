@@ -53,7 +53,9 @@ ALIGN(RT_ALIGN_SIZE)
 rt_uint8_t lwc_output_stack[ 1024 ];
 struct rt_thread lwc_output_thread;
 
-static struct rt_timer timersec;
+static struct rt_timer timerions;
+static struct rt_timer timerfm;
+
 static rt_uint16_t ion_count;
 
 static rt_err_t timer3_timeout_cb(rt_device_t dev, rt_size_t size)
@@ -68,7 +70,7 @@ static rt_err_t timer4_timeout_cb(rt_device_t dev, rt_size_t size)
     rt_kprintf("HT %d\n", rt_tick_get());    
     return 0;
 }
-static void timeout_sec(void* parameter)
+static void timeout_ionswtich(void* parameter)
 {
 
 	if(20*60-1 > ion_count)
@@ -78,9 +80,14 @@ static void timeout_sec(void* parameter)
     else
     {
         ion_count = 0;
-        //rt_timer_stop(&timersec);
+        //rt_timer_stop(&timerions);
         //rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);
     }
+}
+static void timeout_frequency_modulation(void* parameter)
+{
+    
+	
 }
 void lwc_output_thread_entry(void* parameter)
 {
@@ -148,13 +155,19 @@ void lwc_output_thread_entry(void* parameter)
 #endif /* RT_USING_HWTIM4 */   
 
         
-	rt_timer_init(&timersec, "timersec", 
-	timeout_sec, 
+	rt_timer_init(&timerions, "timerions", 
+	timeout_ionswtich, 
 	RT_NULL, 
 	1000, /*1000 tick */
-	RT_TIMER_FLAG_PERIODIC); 
-	
-	rt_timer_start(&timersec);
+	RT_TIMER_FLAG_PERIODIC); 	
+	//rt_timer_start(&timerions);
+    
+    rt_timer_init(&timerfm, "timerfm", 
+	timeout_frequency_modulation, 
+	RT_NULL, 
+	1000, /*1000 tick */
+	RT_TIMER_FLAG_PERIODIC); 	
+	//rt_timer_start(&timerions);
        
     rt_pin_mode(PD2_BEEP, PIN_MODE_OUTPUT);
     rt_pin_mode(PB5_IONTHERAPY_RLY, PIN_MODE_OUTPUT);
@@ -502,7 +515,7 @@ static rt_err_t lwc_cure_ion_output(rt_device_t dev, lwc_cure_t *lc)
             if(LWC_INACTIVE == lc->lcf[IONICE_CURE].cure_out_actived)
             {                
                 lc->lcf[IONICE_CURE].cure_out_actived = LWC_ACTIVED;
-                                             
+                rt_timer_start(&timerions);                             
             }            
             if(1 == lc->lreg.btn.button_lzlf)/* low */
             {
@@ -577,7 +590,7 @@ static rt_err_t lwc_cure_ion_output(rt_device_t dev, lwc_cure_t *lc)
                     rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
                 } 
                 
-            }                                               
+            }             
         }              
     }
     else
@@ -586,6 +599,7 @@ static rt_err_t lwc_cure_ion_output(rt_device_t dev, lwc_cure_t *lc)
         rt_pin_write(PB13_IONTHERAPY_CRL1,PIN_LOW);
         rt_pin_write(PB14_IONTHERAPY_CRL2,PIN_LOW);
         rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+        rt_timer_stop(&timerions);
     }
     return err;        
 }
