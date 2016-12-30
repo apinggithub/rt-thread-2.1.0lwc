@@ -76,7 +76,7 @@
 #define RT_USING_HWTIM3_CH4_IC    0   /*select timer intput capture mode*/
 #define RT_USING_HWTIM3_CH4_ENCODER 0 /*select timer encoder mode*/
 
-//#define RT_USING_HWTIM4   /*the general hardtimer TIM4*/
+#define RT_USING_HWTIM4   /*the general hardtimer TIM4*/
 #define RT_USING_HWTIM4_CH1 /* 0 ---> disable or 1 ---> enable blow for single choice */
 #define RT_USING_HWTIM4_CH1_PWM   1   /*select timer pwm mode*/
 #define RT_USING_HWTIM4_CH1_OCM   0   /*select timer compare out mode*/

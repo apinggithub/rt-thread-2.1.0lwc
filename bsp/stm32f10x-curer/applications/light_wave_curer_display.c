@@ -37,7 +37,7 @@ static rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc);
 
 //static rt_sem_t sem = RT_NULL;
 rt_uint16_t tmr_count = 0;
-static struct rt_timer timer1;
+static struct rt_timer timerblink;
 
 ALIGN(RT_ALIGN_SIZE)
 rt_uint8_t lwc_display_stack[ 1024 ];
@@ -45,7 +45,7 @@ struct rt_thread lwc_display_thread;
 
 
 /*定时器超时函数*/
-static void timeout1(void* parameter)
+static void timeout_blink(void* parameter)
 {
 	//rt_kprintf("periodic timer is timeout\n");	
 	//rt_pin_write(19, led2sw);
@@ -78,13 +78,13 @@ void lwc_display_thread_entry(void* parameter)
     }
    
     /* 初始化定时器*/
-	rt_timer_init(&timer1, "timer1", /* 定时器名为timer1 */
-	timeout1, /* 超时函数回调处理 */
+	rt_timer_init(&timerblink, "timerblink", /* 定时器名为timerblink */
+	timeout_blink, /* 超时函数回调处理 */
 	RT_NULL, /* 超时函数入口参数*/
 	1, /* 定时长度,OS 以Tick为单位,即1个OS Tick 产生一次超时处理*/
 	RT_TIMER_FLAG_PERIODIC); /* 周期性定时*/
 	
-	rt_timer_start(&timer1);
+	rt_timer_start(&timerblink);
     
     //rt_sem_init(sem, "sem_update", 0, RT_IPC_FLAG_FIFO);
     while (1)

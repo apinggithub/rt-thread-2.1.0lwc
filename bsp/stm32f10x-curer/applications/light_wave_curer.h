@@ -31,7 +31,7 @@
 /* The pin NO. on the chip*/
 #define PD2_BEEP                        54 
 #define PB1_LASER_DRV                   27
-#define PB5_IONTHERAPY_SW               57
+#define PB5_IONTHERAPY_RLY              57
 #define PB12_IONTHERAPY_PWR             33
 #define PB13_IONTHERAPY_CRL1            34
 #define PB14_IONTHERAPY_CRL2            35
@@ -67,8 +67,14 @@
 #define TMR_DELAY_900ms                 900
 
 
-#define TMR_CH_LASER_CURE              3
-#define TMR_CH_HEAT_CURE               4
+#define TMR_CH_LASER_PWM        HWTIMER_CH3
+#define TMR_CH_HEAT_PWM         HWTIMER_CH4
+
+#define TMR_CH_CUREI_PWM        HWTIMER_CH1
+#define TMR_CH_CUREII_PWM       HWTIMER_CH3
+
+#define TMR_CH_CUREI_FREQ       HWTIMER_CH2
+#define TMR_CH_CUREII_FREQ      HWTIMER_CH4
 
 /* the event type rt-thread event API */
 #define RT_EVENT_LWC_TIMER_FINISH_CLOSE     1<<0 /* 定时器超时输出关闭 */
@@ -151,7 +157,7 @@ typedef struct lwc_cure_display
     lwc_data_reg_t lreg;
     lwc_cure_way_t lway[5];     /* 治疗方式 */    
     rt_lcd_ramdat_t lcdr[20];   /* 共用20个段位 */
-    lwc_cure_output_t lcf[4];    /* 共四路输出*/
+    lwc_cure_output_t lcf[5];    /* 共四路输出*/
 }lwc_cure_t;
 
 

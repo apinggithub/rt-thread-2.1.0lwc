@@ -38,7 +38,7 @@ lwc_cure_t lct;
 ALIGN(RT_ALIGN_SIZE)
 rt_uint8_t lwc_button_stack[ 1024 ];
 struct rt_thread lwc_button_thread;
-static struct rt_timer timer2;
+static struct rt_timer timerdec;
 
 struct rt_event event;/* 事件控制块*/
 
@@ -46,7 +46,7 @@ static uint32_t tmr_init_val = 0;
 static uint32_t tmr_count = 0;
 
 /*定时器超时函数*/
-static void timeout2(void* parameter)
+static void timeout_dec(void* parameter)
 {
 
 	if((tmr_init_val - tmr_count) > 0)
@@ -57,7 +57,7 @@ static void timeout2(void* parameter)
     else
     {
         tmr_count = 0;
-        rt_timer_stop(&timer2);
+        rt_timer_stop(&timerdec);
         rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);
     }
 }
@@ -101,8 +101,8 @@ void lwc_button_thread_entry(void* parameter)
     }
     
     /* 初始化定时器 */
-	rt_timer_init(&timer2, "timer2", /* 定时器名为timer2 */
-	timeout2, /* 超时函数回调处理 */
+	rt_timer_init(&timerdec, "timerdec", /* 定时器名为timer2 */
+	timeout_dec, /* 超时函数回调处理 */
 	RT_NULL, /* 超时函数入口参数*/
 	1000, /* 定时长度,OS 以Tick为单位,即1000个OS Tick 产生一次超时处理 */
 	RT_TIMER_FLAG_PERIODIC); /* 周期性定时 */
@@ -113,7 +113,7 @@ void lwc_button_thread_entry(void* parameter)
         {
             flag_tmrval_start = 1;
             tmr_init_val = lct.lreg.tval.tmr_value*60;
-            rt_timer_start(&timer2);
+            rt_timer_start(&timerdec);
         }
                 
         if (rt_event_recv(&event, (RT_EVENT_LWC_DEVICE_POWER_CLOSE),
@@ -125,7 +125,7 @@ void lwc_button_thread_entry(void* parameter)
                 vcno = 0x5A + 31;/* 治疗结束，请关断电源，谢谢使用，祝您早日康复 */                   
                 rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));       
             }
-            rt_timer_stop(&timer2);
+            rt_timer_stop(&timerdec);
             lct.lreg.btn.button_dyds = 0;
             lct.lreg.tval.tmr_lock = 0;
             lct.lreg.tval.tmr_value = 0;
@@ -507,6 +507,7 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 19;/* 治疗输出强度1 增加 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                 }
             }
@@ -519,13 +520,14 @@ void lwc_button_thread_entry(void* parameter)
                     {
                         if(23 < (++lct.lreg.btn.button_zl2))
                         {
-                            lct.lreg.btn.button_zl1 = 23;
+                            lct.lreg.btn.button_zl2 = 23;
                         }
                         if(0 == flag_voice_close)
                         {
                             vcno = 0x5A + 21;/* 治疗输出强度2 增加 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                 }
             }
@@ -545,6 +547,7 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 20;/* 治疗输出强度1 减少 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                 }
             }
@@ -564,6 +567,7 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 22;/* 治疗输出强度2 减少 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                 }
             }

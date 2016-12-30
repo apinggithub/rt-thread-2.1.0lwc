@@ -32,7 +32,9 @@
 
 #include "light_wave_curer.h"
 
-static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc);
+static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc);
+static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc);
+static rt_err_t lwc_cure_ion_output(rt_device_t dev, lwc_cure_t *lc);
 
 const float frq[][6] = {
     {26.0,  17.0,   9.0,    5.0,    0.5,    4.0},
@@ -51,6 +53,9 @@ ALIGN(RT_ALIGN_SIZE)
 rt_uint8_t lwc_output_stack[ 1024 ];
 struct rt_thread lwc_output_thread;
 
+static struct rt_timer timersec;
+static rt_uint16_t ion_count;
+
 static rt_err_t timer3_timeout_cb(rt_device_t dev, rt_size_t size)
 {
     //rt_kprintf("HT %d\n", rt_tick_get());
@@ -63,18 +68,29 @@ static rt_err_t timer4_timeout_cb(rt_device_t dev, rt_size_t size)
     rt_kprintf("HT %d\n", rt_tick_get());    
     return 0;
 }
-void lwc_output_thread_entry(void* parameter)
+static void timeout_sec(void* parameter)
 {
 
+	if(20*60-1 > ion_count)
+    {
+        ion_count++;
+    }
+    else
+    {
+        ion_count = 0;
+        //rt_timer_stop(&timersec);
+        //rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);
+    }
+}
+void lwc_output_thread_entry(void* parameter)
+{
     rt_err_t err;
-    rt_device_t dev_hwtimer3 = RT_NULL;
-    rt_device_t dev_hwtimer4 = RT_NULL;
-    rt_device_hwtimer_t *timer3;
-    rt_device_hwtimer_t *timer4;
     rt_hwtimer_chval_t hwc;
     //rt_hwtimer_tmr_t tmr;
     rt_uint32_t recv_event;
-         
+#ifdef RT_USING_HWTIM3  
+    rt_device_t dev_hwtimer3 = RT_NULL;
+    rt_device_hwtimer_t *timer3;
     if ((dev_hwtimer3 = rt_device_find(TIMER3)) == RT_NULL)
     {
         rt_kprintf("No Device: %s\n", TIMER3);
@@ -100,19 +116,12 @@ void lwc_output_thread_entry(void* parameter)
         err = rt_device_close(dev_hwtimer3);
         while(1);
     }
-          
-    /* set the duty cycles 50%*/
-    /*hwt.count = timer3->reload/4;
-    hwt.ch = HWTIMER_CH3;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
-        err = rt_device_close(dev_hwtimer3);
-        while(1);
-    }*/
+#endif /* RT_USING_HWTIM3 */          
+
   
-#if 0
+#ifdef RT_USING_HWTIM4
+    rt_device_t dev_hwtimer4 = RT_NULL;    
+    rt_device_hwtimer_t *timer4;
     if ((dev_hwtimer4 = rt_device_find(TIMER4)) == RT_NULL)
     {
         rt_kprintf("No Device: %s\n", TIMER4);
@@ -128,93 +137,37 @@ void lwc_output_thread_entry(void* parameter)
         while(1);
     }
     rt_device_set_rx_indicate(dev_hwtimer4, timer4_timeout_cb);
-    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_SET_FREQ, &timer4->freq);
+    hwc.value = timer4->freq = 1200;
+    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_SET_FREQ, &hwc);
     if (err != RT_EOK)
     {
         rt_kprintf("Set timer freq = %d Hz Fail! And close the %s\n" ,timer4->freq, TIMER4);
         err = rt_device_close(dev_hwtimer4);
         while(1);
-    }
-    //hwt.count = timer3->reload/2;
-    hwt.ch = HWTIMER_CH4;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
-        err = rt_device_close(dev_hwtimer3);
-        while(1);
-    }
-    hwt.count = timer4->reload/2;
-    hwt.ch = HWTIMER_CH1;
-    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
-        err = rt_device_close(dev_hwtimer4);
-        while(1);
-    }
-    hwt.ch = HWTIMER_CH3;
-    err = rt_device_control(dev_hwtimer4, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
-        err = rt_device_close(dev_hwtimer4);
-        while(1);
-    }
-#endif
-    
-    #if 0
-    /*set time lenght */                
-    tmrval.sec = 30;//lcc->lreg.tval.tmr_value*60;
-    if (rt_device_write(dev_hwtimer3, 2, &tmrval, sizeof(tmrval)) != sizeof(tmrval))
-    {
-        rt_kprintf("SetTime = %d Fail and close the %s\n" ,tmrval,TIMER3);
-        err = rt_device_close(dev_hwtimer3);
-        while(1);
-    }
-    rt_thread_delay( RT_TICK_PER_SECOND*5 );
-    
-    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwt);
-    rt_kprintf(" default Get ch = %d pwm = %d \n", &hwt.ch, timer3->pwm_duty_cycle[hwt.ch]);
-    hwt.count += 100;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
-        err = rt_device_close(dev_hwtimer4);
-        while(1);
-    }
-    rt_thread_delay( RT_TICK_PER_SECOND*5 );    
-    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_GET_DUTY_CYCLE, &hwt);    
-    rt_kprintf(" default Get ch = %d pwm = %d \n", &hwt.ch, timer3->pwm_duty_cycle[hwt.ch]);
-    hwt.count += 100;
-    err = rt_device_control(dev_hwtimer3, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwt);
-    if (err != RT_EOK)
-    {
-        rt_kprintf("Set ch  = %d pwm Fail\n", hwt.ch);
-        err = rt_device_close(dev_hwtimer4);
-        while(1);
-    }
-    /*if (rt_device_write(dev_hwtimer3, 2, &tmrval, sizeof(tmrval)) != sizeof(tmrval))
-    {
-        rt_kprintf("SetTime = %d Fail and close the %s\n" ,tmrval,TIMER3);
-        err = rt_device_close(dev_hwtimer3);
-        while(1);
-    }*/
-    
+    }    
+#endif /* RT_USING_HWTIM4 */   
+
+        
+	rt_timer_init(&timersec, "timersec", 
+	timeout_sec, 
+	RT_NULL, 
+	1000, /*1000 tick */
+	RT_TIMER_FLAG_PERIODIC); 
+	
+	rt_timer_start(&timersec);
+       
     rt_pin_mode(PD2_BEEP, PIN_MODE_OUTPUT);
-    rt_pin_mode(PB5_IONTHERAPY_SW, PIN_MODE_OUTPUT);
+    rt_pin_mode(PB5_IONTHERAPY_RLY, PIN_MODE_OUTPUT);
     rt_pin_mode(PB12_IONTHERAPY_PWR, PIN_MODE_OUTPUT);
     rt_pin_mode(PB13_IONTHERAPY_CRL1, PIN_MODE_OUTPUT);
     rt_pin_mode(PB13_IONTHERAPY_CRL1, PIN_MODE_OUTPUT);
     rt_pin_mode(PB15_IONTHERAPY_DECT, PIN_MODE_INPUT);
-    #endif
     
     while(1)
     {
         
-        //rt_pin_write(19, PIN_HIGH);
-        //rt_pin_write(19, PIN_LOW);	
+        //rt_pin_write(PB5_IONTHERAPY_SW, PIN_HIGH);
+        //rt_pin_write(PB12_IONTHERAPY_PWR, PIN_LOW);	
         if (rt_event_recv(&event, (RT_EVENT_LWC_TIMER_FINISH_CLOSE
                                     |RT_EVENT_LWC_DEVICE_FORCE_CLOSE
                                     |RT_EVENT_LWC_BUTTON_UPDATE
@@ -229,9 +182,13 @@ void lwc_output_thread_entry(void* parameter)
                 case RT_EVENT_LWC_TIMER_FINISH_CLOSE:
                 case RT_EVENT_LWC_DEVICE_FORCE_CLOSE:    
                 {
-                    hwc.ch = TMR_CH_LASER_CURE;
+                    hwc.ch = TMR_CH_LASER_PWM;
                     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
-                    hwc.ch = TMR_CH_HEAT_CURE;
+                    hwc.ch = TMR_CH_HEAT_PWM;
+                    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
+                    hwc.ch = TMR_CH_CUREI_PWM;
+                    rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
+                    hwc.ch = TMR_CH_CUREII_PWM;
                     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
                     
                     rt_event_send(&event, RT_EVENT_LWC_DEVICE_POWER_CLOSE);
@@ -239,32 +196,32 @@ void lwc_output_thread_entry(void* parameter)
                 break;
                 case RT_EVENT_LWC_BUTTON_UPDATE:
                 {
-                    lwc_cure_output(dev_hwtimer3, (lwc_cure_t *)&lct);
+                    lwc_cure_timer3_output(dev_hwtimer3, (lwc_cure_t *)&lct);
+                    lwc_cure_timer4_output(dev_hwtimer4, (lwc_cure_t *)&lct);
                 }
                 break;
                 case RT_EVENT_LWC_LASER_CURE_CLOSE:
                 {
-                    hwc.ch = TMR_CH_LASER_CURE;
+                    hwc.ch = TMR_CH_LASER_PWM;
                     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
                 }
                 break;
                 case RT_EVENT_LWC_HEAT_CURE_CLOSE:
                 {
-                    hwc.ch = TMR_CH_HEAT_CURE;
+                    hwc.ch = TMR_CH_HEAT_PWM;
                     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwc); 
                 }
                 break;
                 default:
                 break;
-            }           
-            
+            }                      
         }
-                             
+        lwc_cure_ion_output(dev_hwtimer3, (lwc_cure_t *)&lct);                     
         rt_thread_delay( RT_TICK_PER_SECOND/10 );
     }
 }
 
-static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
+static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc)
 {
     rt_err_t err = RT_EOK;
     RT_ASSERT(dev != RT_NULL);
@@ -283,7 +240,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
             if(1 == lc->lreg.btn.button_jg)/* low */
             {
                 /* get the reload of the timer */
-                hwc.ch = TMR_CH_LASER_CURE;
+                hwc.ch = TMR_CH_LASER_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
                 if (err != RT_EOK)
                 {
@@ -293,7 +250,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 /* set duty cycles */
                 uint16_t tval = hwc.value;               
                 hwc.value = tval*1/3;
-                hwc.ch = TMR_CH_LASER_CURE;
+                hwc.ch = TMR_CH_LASER_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
                 if (err != RT_EOK)
                 {
@@ -304,12 +261,12 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 {
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
                 }
-                hwc.ch = TMR_CH_LASER_CURE;
+                hwc.ch = TMR_CH_LASER_PWM;
                 rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
             }
             else if(2 == lc->lreg.btn.button_jg) /* middle */
             {
-                hwc.ch = TMR_CH_LASER_CURE;
+                hwc.ch = TMR_CH_LASER_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
                 if (err != RT_EOK)
                 {
@@ -319,7 +276,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 /* set duty cycles */
                 uint16_t tval = hwc.value;
                 hwc.value = tval*2/3;
-                hwc.ch = TMR_CH_LASER_CURE;
+                hwc.ch = TMR_CH_LASER_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
                 if (err != RT_EOK)
                 {
@@ -333,7 +290,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
             }
             else if(3 == lc->lreg.btn.button_jg) /* hight */
             {
-                hwc.ch = TMR_CH_LASER_CURE;
+                hwc.ch = TMR_CH_LASER_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
                 if (err != RT_EOK)
                 {
@@ -343,7 +300,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 /* set duty cycles */
                 uint16_t tval = hwc.value;
                 hwc.value = tval*3/3;
-                hwc.ch = TMR_CH_LASER_CURE;
+                hwc.ch = TMR_CH_LASER_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
                 if (err != RT_EOK)
                 {
@@ -355,10 +312,8 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
                 }
             }                                               
-        }      
-        
+        }             
     }
-    
     if(LWC_ACTIVED == lc->lway[HEAT_CURE].status)
     {
         if(1 == lc->lreg.tval.tmr_lock)
@@ -371,7 +326,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
             if(1 == lc->lreg.btn.button_rl)/* low */
             {
                 /* get the reload of the timer */
-                hwc.ch = TMR_CH_HEAT_CURE;
+                hwc.ch = TMR_CH_HEAT_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
                 if (err != RT_EOK)
                 {
@@ -381,7 +336,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 /* set duty cycles */
                 uint16_t tval = hwc.value;               
                 hwc.value = tval*1/3;
-                hwc.ch = TMR_CH_HEAT_CURE;
+                hwc.ch = TMR_CH_HEAT_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
                 if (err != RT_EOK)
                 {
@@ -392,12 +347,12 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 {
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
                 }
-                hwc.ch = TMR_CH_HEAT_CURE;
+                hwc.ch = TMR_CH_HEAT_PWM;
                 rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
             }
             else if(2 == lc->lreg.btn.button_rl) /* middle */
             {
-                hwc.ch = TMR_CH_HEAT_CURE;
+                hwc.ch = TMR_CH_HEAT_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
                 if (err != RT_EOK)
                 {
@@ -407,7 +362,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 /* set duty cycles */
                 uint16_t tval = hwc.value;
                 hwc.value = tval*2/3;
-                hwc.ch = TMR_CH_HEAT_CURE;
+                hwc.ch = TMR_CH_HEAT_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
                 if (err != RT_EOK)
                 {
@@ -421,7 +376,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
             }
             else if(3 == lc->lreg.btn.button_rl) /* hight */
             {
-                hwc.ch = TMR_CH_HEAT_CURE;
+                hwc.ch = TMR_CH_HEAT_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
                 if (err != RT_EOK)
                 {
@@ -431,7 +386,7 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                 /* set duty cycles */
                 uint16_t tval = hwc.value;
                 hwc.value = tval*3/3;
-                hwc.ch = TMR_CH_HEAT_CURE;
+                hwc.ch = TMR_CH_HEAT_PWM;
                 err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
                 if (err != RT_EOK)
                 {
@@ -443,10 +398,196 @@ static rt_err_t lwc_cure_output(rt_device_t dev, lwc_cure_t *lc)
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
                 }
             }                                               
+        } 
+    }
+    return err;
+}
+
+static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc)
+{
+    rt_err_t err = RT_EOK;
+    RT_ASSERT(dev != RT_NULL);
+    RT_ASSERT(lc != RT_NULL);   
+    rt_hwtimer_chval_t hwc; 
+    
+    if(LWC_ACTIVED == lc->lway[FUNCTION].status)
+    {
+        if(1 == lc->lreg.tval.tmr_lock)
+        { 
+            if(LWC_INACTIVE == lc->lcf[FUNCTION].cure_out_actived)
+            {                
+                lc->lcf[FUNCTION].cure_out_actived = LWC_ACTIVED;
+            }   
+            /* get the reload of the timer */
+            if(0 < lc->lreg.btn.button_zl1)
+            {
+                hwc.ch = TMR_CH_CUREI_PWM;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;               
+                hwc.value = (lc->lreg.btn.button_zl1)*tval/24;
+                hwc.ch = TMR_CH_CUREI_PWM;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                }
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
+                if(1 == lc->lreg.btn.button_zl1)
+                {
+                    hwc.ch = TMR_CH_CUREI_PWM;                
+                    rt_device_control(dev, HWTIMER_CTRL_START, &hwc); 
+                }                    
+            }
+            else
+            {
+               hwc.ch = TMR_CH_CUREI_PWM;
+               rt_device_control(dev, HWTIMER_CTRL_STOP, &hwc);    
+            }
+            if(0 < lc->lreg.btn.button_zl2)
+            {
+                hwc.ch = TMR_CH_CUREII_PWM;
+                err = rt_device_control(dev, HWTIMER_CTRL_GET_AUTORELOAD, &hwc); 
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Get the timer reload Fail\n");
+                    return err;
+                }
+                /* set duty cycles */
+                uint16_t tval = hwc.value;               
+                hwc.value = (lc->lreg.btn.button_zl2)*tval/24;
+                hwc.ch = TMR_CH_CUREII_PWM;
+                err = rt_device_control(dev, HWTIMER_CTRL_SET_DUTY_CYCLE, &hwc);
+                if (err != RT_EOK)
+                {
+                    rt_kprintf("Set ch  = %d pwm Fail\n", hwc.ch);
+                    return err;
+                }
+                else
+                {
+                    rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                }
+                if(1 == lc->lreg.btn.button_zl2)
+                {
+                    hwc.ch = TMR_CH_CUREII_PWM;
+                    rt_device_control(dev, HWTIMER_CTRL_START, &hwc);  
+                }                    
+            }
+            else
+            {
+               hwc.ch = TMR_CH_CUREII_PWM;
+               rt_device_control(dev, HWTIMER_CTRL_STOP, &hwc);    
+            }
+        }
+                                                                                                                                          
+    }  
+    return err;
+}
+static rt_err_t lwc_cure_ion_output(rt_device_t dev, lwc_cure_t *lc)
+{    
+    rt_err_t err = RT_EOK;
+    if(LWC_ACTIVED == lc->lway[IONICE_CURE].status)
+    {
+        if(1 == lc->lreg.tval.tmr_lock)
+        { 
+            if(LWC_INACTIVE == lc->lcf[IONICE_CURE].cure_out_actived)
+            {                
+                lc->lcf[IONICE_CURE].cure_out_actived = LWC_ACTIVED;
+                                             
+            }            
+            if(1 == lc->lreg.btn.button_lzlf)/* low */
+            {
+                /* turn on  control 1 */
+                if(PIN_LOW == rt_pin_read(PB15_IONTHERAPY_DECT))
+                {                    
+                    rt_pin_write(PB12_IONTHERAPY_PWR, PIN_HIGH);
+                    rt_pin_write(PB13_IONTHERAPY_CRL1, PIN_HIGH);
+                    rt_pin_write(PB14_IONTHERAPY_CRL2, PIN_LOW);
+                    if(600 > ion_count)
+                    {
+                        rt_pin_write(PB5_IONTHERAPY_RLY, PIN_HIGH);
+                    }
+                    else
+                    {
+                        rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+                    }
+                }   
+                else
+                {
+                    rt_pin_write(PB12_IONTHERAPY_PWR, PIN_LOW); 
+                    rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+                }
+                
+            }
+            else if(2 == lc->lreg.btn.button_lzlf) /* middle */
+            {
+                
+                /* turn on  control 2 */
+                if(PIN_LOW == rt_pin_read(PB15_IONTHERAPY_DECT))
+                {                    
+                    rt_pin_write(PB12_IONTHERAPY_PWR, PIN_HIGH);
+                    rt_pin_write(PB13_IONTHERAPY_CRL1,PIN_LOW);
+                    rt_pin_write(PB14_IONTHERAPY_CRL2,PIN_HIGH);
+                    if(600 > ion_count)
+                    {
+                        rt_pin_write(PB5_IONTHERAPY_RLY, PIN_HIGH);
+                    }
+                    else
+                    {
+                        rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+                    }
+                }   
+                else
+                {
+                    rt_pin_write(PB12_IONTHERAPY_PWR, PIN_LOW); 
+                    rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+                }
+            }
+            else if(3 == lc->lreg.btn.button_rl) /* hight */
+            {
+                             
+               //rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+               /* turn on  control 3 */
+                if(PIN_LOW == rt_pin_read(PB15_IONTHERAPY_DECT))
+                {                    
+                    rt_pin_write(PB12_IONTHERAPY_PWR, PIN_HIGH);
+                    rt_pin_write(PB13_IONTHERAPY_CRL1,PIN_HIGH);
+                    rt_pin_write(PB14_IONTHERAPY_CRL2,PIN_HIGH);
+                    if(600 > ion_count)
+                    {
+                        rt_pin_write(PB5_IONTHERAPY_RLY, PIN_HIGH);
+                    }
+                    else
+                    {
+                        rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+                    }
+                }   
+                else
+                {
+                    rt_pin_write(PB12_IONTHERAPY_PWR, PIN_LOW); 
+                    rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+                } 
+                
+            }                                               
         }              
     }
-    
-    
+    else
+    {
+        rt_pin_write(PB12_IONTHERAPY_PWR, PIN_LOW);
+        rt_pin_write(PB13_IONTHERAPY_CRL1,PIN_LOW);
+        rt_pin_write(PB14_IONTHERAPY_CRL2,PIN_LOW);
+        rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);
+    }
+    return err;        
 }
 
 
