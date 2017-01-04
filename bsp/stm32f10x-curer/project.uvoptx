@@ -175,9 +175,25 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
+          <LineNumber>390</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134230810</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>applications\light_wave_curer_output.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\rtthread_stm32\applications/light_wave_curer_output.c\390</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
           <LineNumber>93</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134231244</Address>
+          <Address>134231292</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -189,11 +205,11 @@
           <Expression>\\rtthread_stm32\applications/drv_hwtimer_test.c\93</Expression>
         </Bp>
         <Bp>
-          <Number>1</Number>
+          <Number>2</Number>
           <Type>0</Type>
           <LineNumber>123</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134231348</Address>
+          <Address>134231396</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -203,6 +219,38 @@
           <Filename>applications\drv_hwtimer_test.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\rtthread_stm32\applications/drv_hwtimer_test.c\123</Expression>
+        </Bp>
+        <Bp>
+          <Number>3</Number>
+          <Type>0</Type>
+          <LineNumber>753</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134229354</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>applications\light_wave_curer_output.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\\applications/light_wave_curer_output.c\753</Expression>
+        </Bp>
+        <Bp>
+          <Number>4</Number>
+          <Type>0</Type>
+          <LineNumber>743</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134229306</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>applications\light_wave_curer_output.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\\applications/light_wave_curer_output.c\743</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

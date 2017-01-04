@@ -58,7 +58,7 @@ static void timeout_dec(void* parameter)
     {
         tmr_count = 0;
         rt_timer_stop(&timerdec);
-        rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);
+        rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);        
     }
 }
 
