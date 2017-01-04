@@ -69,7 +69,7 @@ int hwtimer(void)
     
     #define TIMER6   "timer6"
     rt_device_t dev_hwtimer6 = RT_NULL;
-    static uint16_t val6;
+    //static uint16_t val6;
     rt_hwtimer_chval_t hwc6;
     rt_hwtimer_tmrval_t hwt6;
     

@@ -17,6 +17,7 @@
 #include <board.h>
 #include "drv_hwtimer.h"
 #include "tim.h"
+#include "light_wave_curer.h"
 
 #ifdef RT_USING_HWTIMER
 static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
@@ -458,7 +459,7 @@ static void drv_timer_stop(rt_device_hwtimer_t *timer, rt_uint8_t ch)
     }              
 }
 
-static rt_err_t drv_timer_set_frequency(rt_device_hwtimer_t *timer, rt_uint32_t freq)
+static rt_err_t drv_timer_set_frequency(rt_device_hwtimer_t *timer, float freq)
 {
     
     rt_err_t err = RT_EOK;
@@ -485,9 +486,9 @@ static rt_err_t drv_timer_set_frequency(rt_device_hwtimer_t *timer, rt_uint32_t 
     */       
     sysclk = HAL_RCC_GetHCLKFreq();/* get system clock 72MHz */                        
             
-    if( freq != 0) 
+    if( freq != 0.0) 
     {        
-        timer->reload= sysclk/(timer->prescaler + 1)/freq - 1;
+        timer->reload= (uint16_t)(sysclk/(timer->prescaler + 1)/freq - 1);
         //__HAL_TIM_DISABLE_IT(&(hwtim->TimerHandle), TIM_IT_UPDATE);     
         //__HAL_TIM_CLEAR_IT(&(hwtim->TimerHandle),TIM_IT_UPDATE);    
         __HAL_TIM_SET_PRESCALER(&(hwtim->TimerHandle),timer->prescaler);        
@@ -695,7 +696,6 @@ static const struct rt_hwtimer_ops _ops =
 #ifdef RT_USING_HWTIM6
 static drv_hwtimer_t hwtimer6;
 static rt_device_hwtimer_t rttimer6;
-rt_uint8_t led3sw = 0;
 
 void TIM6_IRQHandler(void)
 { 
@@ -811,8 +811,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     #ifdef RT_USING_HWTIM6
     if( TIM6 == htim->Instance )
     {
-        rt_pin_write(54, led3sw);
-        led3sw = (~led3sw)&0x01;
         rt_device_hwtimer_isr(&rttimer6,HWTIMER_BASE);
     }
     #endif

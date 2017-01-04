@@ -48,6 +48,8 @@
 #define RT_USING_HWTIMER  /*hardware timer driver switch*/
 #define RT_USING_HWTIMER_TEST  /*hardware timer driver test cmd in finsh*/
 
+#define RT_USING_HWTIMER_HOOK
+
 #define RT_USING_HWTIM6 /*the base hardtimer TIM6*/
 //#define RT_USING_HWTIM2   /*the general hardtimer TIM2*/
 

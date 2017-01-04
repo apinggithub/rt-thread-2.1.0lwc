@@ -146,7 +146,7 @@ static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buff
 
     RT_ASSERT(timer->freq != 0);
     tv.sec =  timer->overflow[pos]/timer->freq;   
-    tv.usec = (timer->overflow[pos]%timer->freq)*1000000 + cnt;
+    tv.usec = (timer->overflow[pos]%(uint32_t)timer->freq)*1000000 + cnt;
     
     size = size > sizeof(tv)? sizeof(tv) : size;
     rt_memcpy(buffer, &tv, size);
@@ -258,32 +258,32 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
         break;
         case HWTIMER_CTRL_SET_FREQ:
         {
-            rt_hwtimer_chval_t *hwc = (rt_hwtimer_chval_t*)args;            
+            rt_hwtimer_chfreq_t *hwq = (rt_hwtimer_chfreq_t*)args;            
             if (args == RT_NULL)
             {
                 result = -RT_EEMPTY;
                 break;
             }             
             
-            if ((hwc->value > timer->info->maxfreq) || (hwc->value < timer->info->minfreq))
+            if ((hwq->freq > timer->info->maxfreq) || (hwq->freq < timer->info->minfreq))
             {
                 result = -RT_ERROR;
                 break;
             }
             else
             {
-                if((timer->info->maxfreq > hwc->value )&&(20 <= hwc->value))
+                if((timer->info->maxfreq > hwq->freq )&&(20 <= hwq->freq))
                 {
                     timer->prescaler = SystemCoreClock/1000000 - 1; /*set the defualt prescaler is 71 */
                 }
-                else if(20 > hwc->value)
+                else if(20 > hwq->freq)
                 {
                     //timer->freq = timer->info->minfreq;
                     timer->prescaler = SystemCoreClock/10000 - 1; /*set the defualt prescaler is 7199 */
                 }
                 if (timer->ops->drv_set_prescaler != RT_NULL)
                 {
-                    result = timer->ops->drv_set_prescaler(timer, hwc->value);
+                    result = timer->ops->drv_set_prescaler(timer, hwq->freq);
                     if (result != RT_EOK)
                     {
                         result = -RT_ERROR;
@@ -298,10 +298,10 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
             }
             if (timer->ops->drv_set_frequency != RT_NULL)
             {
-                result = timer->ops->drv_set_frequency(timer, hwc->value);
+                result = timer->ops->drv_set_frequency(timer, hwq->freq);
                 if (result == RT_EOK)
                 {
-                    timer->freq = hwc->value;
+                    timer->freq = hwq->freq;
                 }
             }
             else
@@ -434,13 +434,19 @@ static rt_err_t rt_hwtimer_control(struct rt_device *dev, rt_uint8_t cmd, void *
 
     return result;
 }
-
+__weak void rt_device_hwtimer_hook(rt_device_hwtimer_t *timer, rt_uint8_t ch )
+{
+      timer = timer;
+}
 void rt_device_hwtimer_isr(rt_device_hwtimer_t *timer, rt_uint8_t ch )
 {
     RT_ASSERT(timer != RT_NULL);
     
     if(1 == timer->channel_lock[ch])
     {
+        #ifdef RT_USING_HWTIMER_HOOK
+        rt_device_hwtimer_hook(timer,ch );
+        #endif
         timer->overflow[ch]++;/* add in end of the timer period */
 
         if (timer->cycles[ch] != 0)

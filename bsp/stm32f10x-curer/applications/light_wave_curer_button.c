@@ -352,7 +352,7 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     lct.lreg.tval.tmr_lock = 1;           
                     lct.lreg.btn.button_gn++;
-                    if( lct.lreg.btn.button_gn > 10)
+                    if( lct.lreg.btn.button_gn > 9)
                     {
                         lct.lreg.btn.button_gn = 1;
                     } 
@@ -363,7 +363,8 @@ void lwc_button_thread_entry(void* parameter)
                         {
                             vcno = 0x5A + 9; /* 全功能 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));   
-                        }                            
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     } 
                     else if(2 == lct.lreg.btn.button_gn) 
                     {
@@ -371,7 +372,8 @@ void lwc_button_thread_entry(void* parameter)
                         {
                             vcno = 0x5A + 10;/* 中频治疗 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));  
-                        }                            
+                        } 
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                     else if(3 == lct.lreg.btn.button_gn) 
                     {
@@ -379,7 +381,8 @@ void lwc_button_thread_entry(void* parameter)
                         {
                             vcno = 0x5A + 14;/* 针灸 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                        }                            
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);    
                     } 
                     else if(4 == lct.lreg.btn.button_gn) 
                     {
@@ -387,7 +390,8 @@ void lwc_button_thread_entry(void* parameter)
                         {
                             vcno = 0x5A + 15;/* 拍打 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));
-                        }                            
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     } 
                     else if(5 == lct.lreg.btn.button_gn) 
                     {
@@ -395,7 +399,8 @@ void lwc_button_thread_entry(void* parameter)
                         {
                             vcno = 0x5A + 12;/* 推拿 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));
-                        }                            
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     } 
                     else if(6 == lct.lreg.btn.button_gn) 
                     {
@@ -404,6 +409,7 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 17;/* 按摩 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     } 
                     else if(7 == lct.lreg.btn.button_gn) 
                     {
@@ -412,6 +418,7 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 13;/* 拔罐 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                     else if(8 == lct.lreg.btn.button_gn) 
                     {
@@ -420,6 +427,7 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 41;/* 足疗 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                     else if(9 == lct.lreg.btn.button_gn) 
                     {
@@ -428,7 +436,9 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 42;/* 减肥 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
+                    #if 0
                     else if(10 == lct.lreg.btn.button_gn) 
                     {
                         if(0 == flag_voice_close)
@@ -436,7 +446,9 @@ void lwc_button_thread_entry(void* parameter)
                             vcno = 0x5A + 38;/* 音频 */
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
+                    #endif
                     if(0 == flag_voice_close)
                     {
                         rt_thread_delay(1*RT_TICK_PER_SECOND );
@@ -497,7 +509,8 @@ void lwc_button_thread_entry(void* parameter)
                 if(1 < lct.lreg.btn.button_dyds)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
-                    {                    
+                    {  
+                        lct.lreg.btn.button_zl1_dir = 1;
                         if(23 < (++lct.lreg.btn.button_zl1))
                         {
                             lct.lreg.btn.button_zl1 = 23;
@@ -518,6 +531,7 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
+                        lct.lreg.btn.button_zl2_dir = 1;
                         if(23 < (++lct.lreg.btn.button_zl2))
                         {
                             lct.lreg.btn.button_zl2 = 23;
@@ -538,6 +552,7 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
                     {
+                        lct.lreg.btn.button_zl1_dir = 0;
                         if(0 < lct.lreg.btn.button_zl1 )
                         {
                             lct.lreg.btn.button_zl1--;
@@ -558,6 +573,7 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
+                        lct.lreg.btn.button_zl2_dir = 0;
                         if(0 < lct.lreg.btn.button_zl2 )
                         {
                             lct.lreg.btn.button_zl2--;

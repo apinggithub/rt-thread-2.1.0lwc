@@ -42,6 +42,7 @@
 #define LCD                             "lcdht"
 #define TIMER3                          "timer3"
 #define TIMER4                          "timer4"
+#define TIMER6                          "timer6"
 #define XTP                             "xtp"
 
 
@@ -66,7 +67,7 @@
 #define TMR_DELAY_600ms                 600
 #define TMR_DELAY_900ms                 900
 
-
+#define TMR_CH_BASE             HWTIMER_BASE
 #define TMR_CH_LASER_PWM        HWTIMER_CH3
 #define TMR_CH_HEAT_PWM         HWTIMER_CH4
 
@@ -122,7 +123,8 @@ typedef struct lwc_button
     uint8_t button_gn;/*功能*/
     uint8_t button_zl1;/* 治疗1 */
     uint8_t button_zl2;/* 治疗2 */
-   
+    uint8_t button_zl1_dir; /* zl强度增长方向*/
+    uint8_t button_zl2_dir; /* zl强度增长方向*/
 }lwc_button_t;
 
 typedef struct timer_val
@@ -148,6 +150,7 @@ typedef struct lwc_cure_output
 typedef struct lwc_data_reg
 {   
     lwc_button_t btn;       /* 按键类型 */
+    
     uint8_t    power_ok;    /* 系统上电标记*/
     timer_val_t tval;       /* 定时长度 */   
 }lwc_data_reg_t;
@@ -160,11 +163,19 @@ typedef struct lwc_cure_display
     lwc_cure_output_t lcf[5];    /* 共四路输出*/
 }lwc_cure_t;
 
+typedef struct lwc_function_fm
+{   
+    uint8_t  fm_idx;       /* 调频索引 */
+    uint8_t  func_idx;     /* 功能索引 */
+    uint8_t  fm_switch;    /* 频段输出开关 */   
+}lwc_function_fm_t;
+
 
 extern struct rt_mailbox mb;
 extern char mb_pool[128];
 
 extern lwc_cure_t lct;
+extern lwc_function_fm_t lff;
 extern struct rt_event event;
 
 extern rt_uint8_t lwc_button_stack[ 1024 ];

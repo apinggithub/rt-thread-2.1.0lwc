@@ -57,6 +57,12 @@ typedef struct rt_hwtimer_val
     rt_int32_t value;  /* counter */
 } rt_hwtimer_chval_t;
 
+typedef struct rt_hwtimer_freq
+{
+    rt_int8_t ch;      /* channel no. */
+    float freq;  /* frequency */
+} rt_hwtimer_chfreq_t;
+
 #define HWTIMER_CNTMODE_UP      0x01 /* increment count mode */
 #define HWTIMER_CNTMODE_DW      0x02 /* decreasing count mode */
 typedef struct rt_channel
@@ -71,7 +77,7 @@ typedef struct rt_device_hwtimer
     const struct rt_hwtimer_ops *ops;
     const struct rt_hwtimer_info *info;
 
-    rt_int32_t freq;                /* counting frequency(Hz) set by the user */
+    float freq;                /* counting frequency(Hz) set by the user */
     rt_uint16_t prescaler;          /* timer prescaler */
     rt_int16_t reload;              /* reload cycles(using in period mode) */
     
@@ -98,7 +104,7 @@ struct rt_hwtimer_ops
     rt_err_t (*drv_set_autoreload)(rt_device_hwtimer_t *timer,rt_uint32_t val);
     rt_uint32_t (*drv_get_compare)(rt_device_hwtimer_t *timer,rt_uint8_t ch);
     rt_err_t (*drv_set_compare)(rt_device_hwtimer_t *timer,rt_uint8_t ch,rt_uint32_t val);    
-    rt_err_t (*drv_set_frequency)(rt_device_hwtimer_t *timer, rt_uint32_t freq);
+    rt_err_t (*drv_set_frequency)(rt_device_hwtimer_t *timer, float freq);
 };
 
 /* Timer Feature Information */
