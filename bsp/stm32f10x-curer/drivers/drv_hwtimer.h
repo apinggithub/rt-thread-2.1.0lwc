@@ -21,7 +21,6 @@ extern "C" {
 //#define HWTIM_CHANNEL3              (uint8_t)TIM_CHANNEL_3  
 //#define HWTIM_CHANNEL4              (uint8_t)TIM_CHANNEL_4
     
-        
     
 /* STM32 timer driver */
 typedef struct drv_hwtimer

@@ -25,17 +25,20 @@
 #include <stdint.h>
 #include <drivers/lcdht1621b.h>
 
+/* debug switch */
+//#define USER_HWTIMER_APP_BUG_TEST
+
+
 #define LWC_ACTIVED                         1
 #define LWC_INACTIVE                        0
 
 /* The pin NO. on the chip*/
 #define PD2_BEEP                        54 
-#define PB1_LASER_DRV                   27
-#define PB5_IONTHERAPY_RLY              57
-#define PB12_IONTHERAPY_PWR             33
-#define PB13_IONTHERAPY_CRL1            34
-#define PB14_IONTHERAPY_CRL2            35
-#define PB15_IONTHERAPY_DECT            36
+#define PB5_IONTHERAPY_RLY              30//57
+#define PB12_IONTHERAPY_PWR             15//33
+#define PB13_IONTHERAPY_CRL1            14//34
+#define PB14_IONTHERAPY_CRL2            55//35
+#define PB15_IONTHERAPY_DECT            29//36
 
 /* the registered device */
 #define BUTTON                          "button"
@@ -68,8 +71,8 @@
 #define TMR_DELAY_900ms                 900
 
 #define TMR_CH_BASE             HWTIMER_BASE
-#define TMR_CH_LASER_PWM        HWTIMER_CH3
-#define TMR_CH_HEAT_PWM         HWTIMER_CH4
+#define TMR_CH_LASER_PWM        HWTIMER_CH4
+#define TMR_CH_HEAT_PWM         HWTIMER_CH3
 
 #define TMR_CH_CUREI_PWM        HWTIMER_CH1
 #define TMR_CH_CUREII_PWM       HWTIMER_CH3

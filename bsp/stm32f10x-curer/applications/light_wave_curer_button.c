@@ -56,8 +56,7 @@ static void timeout_dec(void* parameter)
     }
     else
     {
-        tmr_count = 0;
-        rt_timer_stop(&timerdec);
+        tmr_count = 0;       
         rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);        
     }
 }
@@ -126,6 +125,7 @@ void lwc_button_thread_entry(void* parameter)
                 rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));       
             }
             rt_timer_stop(&timerdec);
+            flag_tmrval_start = 0;
             lct.lreg.btn.button_dyds = 0;
             lct.lreg.tval.tmr_lock = 0;
             lct.lreg.tval.tmr_value = 0;

@@ -29,15 +29,15 @@
 
 /* Using hardware button */
  #define RT_USING_HWBUTTON 
- #define RT_USING_HWBUTTON_TEST /*the button driver test cmd in finsh*/ 
+ //#define RT_USING_HWBUTTON_TEST /*the button driver test cmd in finsh*/ 
  
  /* Using segment lcd ht1621b */
  #define RT_USING_LCDHT1621B 
- #define RT_USING_LCDHT1621B_TEST /*the segment lcd  driver chip ht1621b test cmd in finsh*/ 
+ //#define RT_USING_LCDHT1621B_TEST /*the segment lcd  driver chip ht1621b test cmd in finsh*/ 
  
  /* Using voice chip xt8xxp8 */
  #define RT_USING_XT8XXP8
- #define RT_USING_XT8XXP8_TEST /*the voice chip driver test cmd in finsh*/ 
+ //#define RT_USING_XT8XXP8_TEST /*the voice chip driver test cmd in finsh*/ 
  //#define RT_USING_XTP_ONE_WRIRE /* single wire mode*/
  
 
@@ -46,7 +46,7 @@
 
 /* Using independent hardware Timer */
 #define RT_USING_HWTIMER  /*hardware timer driver switch*/
-#define RT_USING_HWTIMER_TEST  /*hardware timer driver test cmd in finsh*/
+//#define RT_USING_HWTIMER_TEST  /*hardware timer driver test cmd in finsh*/
 
 #define RT_USING_HWTIMER_HOOK
 

@@ -59,8 +59,6 @@ lwc_function_fm_t lff;
 
 static rt_err_t timer3_timeout_cb(rt_device_t dev, rt_size_t size)
 {
-    //rt_kprintf("HT %d\n", rt_tick_get());
-    //lct.lreg.tval.cure_done = 1;  
     rt_event_send(&event, RT_EVENT_LWC_TIMER_FINISH_CLOSE);
     return 0;
 }
@@ -83,12 +81,9 @@ void rt_device_hwtimer_hook(rt_device_hwtimer_t *timer, rt_uint8_t ch )
     if(0x01 == lff.fm_switch)
     {
         if(0 < lct.lreg.btn.button_zl1)
-        {                                 
-            if((1 == lct.lreg.btn.button_zl1)&&(1 == lct.lreg.btn.button_zl1_dir))
-            {
-                hwq.ch = TMR_CH_CUREI_FREQ;           
-                rt_device_control(dev, HWTIMER_CTRL_START, &hwq); 
-            }                    
+        {                                             
+            hwq.ch = TMR_CH_CUREI_FREQ;           
+            rt_device_control(dev, HWTIMER_CTRL_START, &hwq);                                
         }
         else
         {
@@ -96,12 +91,9 @@ void rt_device_hwtimer_hook(rt_device_hwtimer_t *timer, rt_uint8_t ch )
            rt_device_control(dev, HWTIMER_CTRL_STOP, &hwq);    
         }  
         if(0 < lct.lreg.btn.button_zl2)
-        {                                 
-            if((1 == lct.lreg.btn.button_zl2)&&(1 == lct.lreg.btn.button_zl2_dir))
-            {
-                hwq.ch = TMR_CH_CUREII_FREQ;           
-                rt_device_control(dev, HWTIMER_CTRL_START, &hwq); 
-            }                    
+        {                                                            
+            hwq.ch = TMR_CH_CUREII_FREQ;           
+            rt_device_control(dev, HWTIMER_CTRL_START, &hwq);                                
         }
         else
         {
@@ -139,7 +131,9 @@ static rt_err_t timer6_timeout_cb(rt_device_t dev, rt_size_t size)
         }
         else   
         {
+            #ifdef USER_HWTIMER_APP_BUG_TEST
             rt_kprintf("Set Freq[%d][%d] = %dHz ok\n", lff.func_idx,lff.fm_idx, (uint32_t)hwq.freq/2);
+            #endif
         }        
         hwt.sec = 10;
         hwt.usec = 0;
@@ -151,7 +145,9 @@ static rt_err_t timer6_timeout_cb(rt_device_t dev, rt_size_t size)
         }
         else
         {
+            #ifdef USER_HWTIMER_APP_BUG_TEST
             rt_kprintf("Set timer work on  = %dsec. ok.\n", hwt.sec);
+            #endif
         }
         switch(lct.lreg.btn.button_gn)
         {                
@@ -306,9 +302,6 @@ void lwc_output_thread_entry(void* parameter)
     
 #ifdef RT_USING_HWTIM6
     rt_device_t dev_hwtimer6 = RT_NULL;
-    //static uint16_t val6;
-    //rt_hwtimer_chfreq_t hwq6;
-    //rt_hwtimer_tmrval_t hwt6;
     
     hwq.ch = HWTIMER_BASE;
     //rt_pin_mode(54, PIN_MODE_OUTPUT);// the port PD2
@@ -323,9 +316,7 @@ void lwc_output_thread_entry(void* parameter)
     timer6 = (rt_device_hwtimer_t *)dev_hwtimer6;  
     timer6->freq = 1;
     timer6->prescaler = 7199;
-    timer6->reload = 0;
-    
-    rt_kprintf("Now test the %s \n", TIMER6);
+    timer6->reload = 0;       
        
     if (rt_device_open(dev_hwtimer6, RT_DEVICE_OFLAG_RDWR) != RT_EOK)
     {
@@ -341,15 +332,7 @@ void lwc_output_thread_entry(void* parameter)
         rt_kprintf("Set Freq = %dHz Fail\n", hwq.freq);
         while(1);
     }
-    /*
-    hwt6.sec = 0;
-    hwt6.usec = 1000;
-    rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt6.sec, hwt6.usec);   
-    if (rt_device_write(dev_hwtimer6, hwq.ch, &hwt6, sizeof(hwt6)) != sizeof(hwt6))
-    {
-        rt_kprintf("SetTime Fail\n");
-        while(1);
-    }*/
+
 
 #endif /* RT_USING_HWTIM6 */   
     
@@ -475,7 +458,9 @@ static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc)
                 }
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }
                 hwc.ch = TMR_CH_LASER_PWM;
                 rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
@@ -501,7 +486,9 @@ static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc)
                 } 
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }
             }
             else if(3 == lc->lreg.btn.button_jg) /* hight */
@@ -525,7 +512,9 @@ static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc)
                 } 
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }
             }                                               
         }             
@@ -561,7 +550,9 @@ static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc)
                 }
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }
                 hwc.ch = TMR_CH_HEAT_PWM;
                 rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
@@ -587,7 +578,9 @@ static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc)
                 } 
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }
             }
             else if(3 == lc->lreg.btn.button_rl) /* hight */
@@ -611,7 +604,9 @@ static rt_err_t lwc_cure_timer3_output(rt_device_t dev, lwc_cure_t *lc)
                 } 
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }
             }                                               
         } 
@@ -658,7 +653,9 @@ static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc)
                 }
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }                
                 if((1 == lc->lreg.btn.button_zl1)&&(1 == lc->lreg.btn.button_zl1_dir))
                 {
@@ -686,7 +683,9 @@ static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc)
                         }
                         else
                         {
-                           rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt.sec, hwt.usec);    
+                            #ifdef USER_HWTIMER_APP_BUG_TEST
+                            rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt.sec, hwt.usec); 
+                            #endif
                         }
                         
                     }
@@ -721,7 +720,9 @@ static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc)
                 }
                 else
                 {
+                    #ifdef USER_HWTIMER_APP_BUG_TEST
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
+                    #endif
                 }
                 if((1 == lc->lreg.btn.button_zl2)&&(1 == lc->lreg.btn.button_zl2_dir))
                 {
@@ -753,7 +754,9 @@ static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc)
                         }
                         else
                         {
+                            #ifdef USER_HWTIMER_APP_BUG_TEST
                             rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt.sec, hwt.usec);   
+                            #endif
                         }
                     }
                 }                    
@@ -785,7 +788,7 @@ static rt_err_t lwc_cure_ion_output(rt_device_t dev, lwc_cure_t *lc)
             if(1 == lc->lreg.btn.button_lzlf)/* low */
             {
                 /* turn on  control 1 */
-                if(PIN_LOW == rt_pin_read(PB15_IONTHERAPY_DECT))
+                if(PIN_HIGH == rt_pin_read(PB15_IONTHERAPY_DECT))
                 {                    
                     rt_pin_write(PB12_IONTHERAPY_PWR, PIN_HIGH);
                     rt_pin_write(PB13_IONTHERAPY_CRL1, PIN_HIGH);

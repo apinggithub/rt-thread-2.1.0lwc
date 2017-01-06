@@ -72,8 +72,8 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                 sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
                 HAL_TIM_ConfigClockSource(&(hwtim->TimerHandle), &sClockSourceConfig);
                 
-                sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-                sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
+                //sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;//TIM_OCPOLARITY_HIGH;
+                //sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                                
                 for(uint8_t i = HWTIMER_CH1; i < HWTIMER_CH1 + 4; i++)
                 {                   
@@ -89,7 +89,9 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                                     {
                                         HAL_TIM_PWM_Init(&(hwtim->TimerHandle));                                                                           
                                         sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                                        sConfigOC.Pulse = 10;                                    
+                                        sConfigOC.Pulse = 10;      
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;//TIM_OCPOLARITY_LOW
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                         HAL_TIM_PWM_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_1);     
                                     }            
                                     break;
@@ -97,6 +99,8 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                                     {
                                         HAL_TIM_OC_Init(&(hwtim->TimerHandle));                                           
                                         sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;//TIM_OCPOLARITY_HIGH;
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                         HAL_TIM_OC_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_1);   
                                     }                                    
                                     break;
@@ -156,14 +160,18 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                                     {                                    
                                         HAL_TIM_PWM_Init(&(hwtim->TimerHandle));                                        
                                         sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                                        sConfigOC.Pulse = 10;                                    
+                                        sConfigOC.Pulse = 10;   
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                         HAL_TIM_PWM_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_2);   
                                     }                                    
                                     break;
                                     case DRV_TIM_CH_TYPE_OC:
                                     {
                                         HAL_TIM_OC_Init(&(hwtim->TimerHandle));                                        
-                                        sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+                                        sConfigOC.OCMode = TIM_OCMODE_TOGGLE;//TIM_OCMODE_TIMING;//
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                         HAL_TIM_OC_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_2);    
                                     }
                                     break;
@@ -223,7 +231,9 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                                     {                                    
                                         HAL_TIM_PWM_Init(&(hwtim->TimerHandle));                                        
                                         sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                                        sConfigOC.Pulse = 10;                                    
+                                        sConfigOC.Pulse = 10; 
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;//TIM_OCPOLARITY_LOW;
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                         HAL_TIM_PWM_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_3);   
                                     }                                    
                                     break;
@@ -231,6 +241,8 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                                     {
                                         HAL_TIM_OC_Init(&(hwtim->TimerHandle));                                        
                                         sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;//TIM_OCPOLARITY_HIGH;
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                         HAL_TIM_OC_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_3);    
                                     }
                                     break;
@@ -290,7 +302,9 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                                     {                                    
                                         HAL_TIM_PWM_Init(&(hwtim->TimerHandle));                                       
                                         sConfigOC.OCMode = TIM_OCMODE_PWM1;
-                                        sConfigOC.Pulse = 10;                                    
+                                        sConfigOC.Pulse = 10;  
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;//TIM_OCPOLARITY_LOW;
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;                                         
                                         HAL_TIM_PWM_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_4);      
                                     }                                    
                                     break;
@@ -298,6 +312,8 @@ static void drv_timer_init(rt_device_hwtimer_t *timer, rt_uint8_t status)
                                     {
                                         HAL_TIM_OC_Init(&(hwtim->TimerHandle));                                          
                                         sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+                                        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+                                        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE; 
                                         HAL_TIM_OC_ConfigChannel(&(hwtim->TimerHandle), &sConfigOC, TIM_CHANNEL_4);    
                                     }
                                     break;
@@ -377,7 +393,7 @@ static rt_err_t drv_timer_start(rt_device_hwtimer_t *timer, rt_uint8_t ch)//, rt
     
     //m = (opmode == HWTIMER_MODE_ONESHOT)? TIM_OPMODE_SINGLE : TIM_OPMODE_REPETITIVE;
     //TIM_SelectOnePulseMode(tim, m);
-    
+                                                                                        
     switch(timer->channel_type[ch])
     {
         case DRV_TIM_CH_TYPE_PWM: 
@@ -428,15 +444,13 @@ static void drv_timer_stop(rt_device_hwtimer_t *timer, rt_uint8_t ch)
         case DRV_TIM_CH_TYPE_PWM: 
         {
             //HAL_TIM_PWM_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
-            HAL_TIM_PWM_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
-            
+            HAL_TIM_PWM_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);            
         }
         break;
         case DRV_TIM_CH_TYPE_OC: 
-        {
+        {            
             //HAL_TIM_OC_Stop(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
-            HAL_TIM_OC_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);
-            
+            HAL_TIM_OC_Stop_IT(&(hwtim->TimerHandle),timer->channel_set[ch].channel);    
         }
         break;
         case DRV_TIM_CH_TYPE_IC: 

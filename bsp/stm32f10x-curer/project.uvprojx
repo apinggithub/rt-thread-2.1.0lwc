@@ -441,26 +441,6 @@
               <FileType>1</FileType>
               <FilePath>applications\light_wave_curer_output.c</FilePath>
             </File>
-            <File>
-              <FileName>drv_hwtimer_test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\drv_hwtimer_test.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_hwbutton_test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\drv_hwbutton_test.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_lcdht1621b_test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\drv_lcdht1621b_test.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_xt8xxp8_test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\drv_xt8xxp8_test.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
