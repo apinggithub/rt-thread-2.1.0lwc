@@ -109,6 +109,13 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+  
+  /**DISABLE: JTAG-DP Disabled and SW-DP Disabled 
+    */
+  __HAL_AFIO_REMAP_SWJ_DISABLE();
+  /* Êä³öµÍµçÆ½ */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);/*JTDI*/
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3|GPIO_PIN_4, GPIO_PIN_RESET);/*JTDO JNTRST*/
 }
 
 

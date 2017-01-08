@@ -540,9 +540,9 @@ void stm32_pin_mode(rt_device_t dev, rt_base_t pin, rt_base_t mode)
     {
         /* input setting: pull up. */
         //GPIO_InitStructure.Mode  = GPIO_Mode_IPU;
-				GPIO_InitStructure.Pull = GPIO_PULLUP;
+		GPIO_InitStructure.Pull = GPIO_PULLUP;
     }
-    if (mode == PIN_MODE_INPUT_PULLUP)
+    else if (mode == PIN_MODE_INPUT_PULLDOWN)
     {
        GPIO_InitStructure.Pull = GPIO_PULLDOWN;
     }

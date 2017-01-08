@@ -76,6 +76,7 @@ void lwc_display_thread_entry(void* parameter)
         rt_kprintf("Open %s Fail\n", LCD);
         while(1);
     }
+    rt_device_control(dev_slcd, LCDHT_CMD_FULL_SREEN_OFF, RT_NULL);   
    
     /* 初始化定时器*/
 	rt_timer_init(&timerblink, "timerblink", /* 定时器名为timerblink */
@@ -1291,6 +1292,49 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
             default:
             break;
         }         
+    }
+    if(LWC_ACTIVED == lc->lcf[IONICE_CURE].cure_out_actived)
+    {
+        /*laser cure display off*/
+        lc->lcdr[8].dat &= ~0x08;
+        rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));
+        /*heat cure display off*/
+        lc->lcdr[6].dat &= ~0x0F;
+        rt_device_write(dev, 0, &lc->lcdr[6], sizeof(lc->lcdr[6]));
+        lc->lcdr[0].dat &= ~0x0F;
+        rt_device_write(dev, 0, &lc->lcdr[0], sizeof(lc->lcdr[0]));   
+        lc->lcdr[1].dat &= ~0x0F;
+        rt_device_write(dev, 0, &lc->lcdr[1], sizeof(lc->lcdr[1]));   
+        lc->lcdr[2].dat &= ~0x0F;
+        rt_device_write(dev, 0, &lc->lcdr[2], sizeof(lc->lcdr[2]));  
+        /*display full function*/
+        lc->lcdr[10].dat &= ~0x0F;
+        rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10])); 
+        lc->lcdr[9].dat &= ~0x07;                
+        rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
+        lc->lcdr[8].dat &= ~0x06;                
+        rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+        /*zl1 force reset*/
+        lc->lcdr[17].dat = 0; 
+        rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
+        lc->lcdr[18].dat = 0;                
+        rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+        lc->lcdr[19].dat = 0;                
+        rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+        /*zl2 force reset*/
+        lc->lcdr[3].dat = 0; 
+        rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+        lc->lcdr[4].dat = 0;                
+        rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+        lc->lcdr[5].dat = 0;                
+        rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+        
+        /*cycle and lock lable reset*/
+        lc->lcdr[12].dat &= ~0x0E;
+        rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
+        lc->lcdr[9].dat &= ~0x08;
+        rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));
+        
     }
               
     return err;   

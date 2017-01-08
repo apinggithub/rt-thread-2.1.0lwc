@@ -37,7 +37,7 @@
 #define PB5_IONTHERAPY_RLY              30//57
 #define PB12_IONTHERAPY_PWR             15//33
 #define PB13_IONTHERAPY_CRL1            14//34
-#define PB14_IONTHERAPY_CRL2            55//35
+#define PB14_IONTHERAPY_CRL2            51//35
 #define PB15_IONTHERAPY_DECT            29//36
 
 /* the registered device */
@@ -66,9 +66,12 @@
 #define TMR_DELAY_200ms                 200
 #define TMR_DELAY_250ms                 250
 #define TMR_DELAY_300ms                 300
+#define TMR_DELAY_400ms                 400
 #define TMR_DELAY_500ms                 500
 #define TMR_DELAY_600ms                 600
+#define TMR_DELAY_800ms                 800
 #define TMR_DELAY_900ms                 900
+#define TMR_DELAY_1000ms                1000
 
 #define TMR_CH_BASE             HWTIMER_BASE
 #define TMR_CH_LASER_PWM        HWTIMER_CH4
@@ -89,6 +92,8 @@
 #define RT_EVENT_LWC_HEAT_CURE_CLOSE        1<<5 /* 热疗关闭*/
 #define RT_EVENT_LWC_IONICE_CURE_CLOSE      1<<6 /* 离子治疗关闭*/
 #define RT_EVENT_LWC_FUNCTION_CLOSE         1<<7 /* 功能治疗关闭*/
+#define RT_EVENT_LWC_ION_FUNC_START         1<<8 /* 离子治疗功能开启 */
+#define RT_EVENT_LWC_ION_TIME_UPDATE        1<<9 /* 离子治疗时间更新 */
 
 /* define cure mode */
 enum cure_mod
@@ -145,8 +150,8 @@ typedef struct lwc_cure_way
 
 typedef struct lwc_cure_output
 {
-    uint8_t force;      /* 治疗强度 */
-    uint8_t func;       /* 功能代号 */
+    //uint8_t force;      /* 治疗强度 */
+    //uint8_t ion_func_actived;       /* 离子功能激活 */
     uint8_t cure_out_actived;
 }lwc_cure_output_t;  
 
@@ -173,13 +178,14 @@ typedef struct lwc_function_fm
     uint8_t  fm_switch;    /* 频段输出开关 */   
 }lwc_function_fm_t;
 
-
+extern rt_uint16_t tmr_count;
 extern struct rt_mailbox mb;
 extern char mb_pool[128];
 
 extern lwc_cure_t lct;
 extern lwc_function_fm_t lff;
 extern struct rt_event event;
+extern struct rt_timer timerions;
 
 extern rt_uint8_t lwc_button_stack[ 1024 ];
 extern struct rt_thread lwc_button_thread;
