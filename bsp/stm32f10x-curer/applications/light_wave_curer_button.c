@@ -275,6 +275,7 @@ void lwc_button_thread_entry(void* parameter)
                     else if(1 == lct.lreg.btn.button_jg) 
                     {
                         lct.lway[LASER_CURE].status = LWC_ACTIVED;   
+                        lct.lreg.tval.tmr_value = 30;
                         if(0 == flag_voice_close)
                         {
                             vcno = 0x5A + 48;/* 激光治疗输出强度 弱档 */
@@ -365,8 +366,10 @@ void lwc_button_thread_entry(void* parameter)
                             rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
                         }                            
                         lct.lreg.btn.button_lzlf = 0;
+                        rt_event_send(&event, RT_EVENT_LWC_ION_CURE_CLOSE);
                         lct.lcf[IONICE_CURE].cure_out_actived = LWC_INACTIVE;
                         lct.lway[IONICE_CURE].status = LWC_INACTIVE;
+                        
                     } 
                     else if(1 == lct.lreg.btn.button_lzlf) 
                     {

@@ -369,6 +369,7 @@ void lwc_output_thread_entry(void* parameter)
                                     |RT_EVENT_LWC_LASER_CURE_CLOSE
                                     |RT_EVENT_LWC_HEAT_CURE_CLOSE
                                     |RT_EVENT_LWC_ION_FUNC_START
+                                    |RT_EVENT_LWC_ION_CURE_CLOSE
                                     ),
                            RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
                            RT_TICK_PER_SECOND/100, &recv_event) == RT_EOK)
@@ -445,6 +446,16 @@ void lwc_output_thread_entry(void* parameter)
                     rt_device_control(dev_hwtimer6, HWTIMER_CTRL_STOP, &hwq);       
                     lct.lcf[IONICE_CURE].cure_out_actived = LWC_ACTIVED; 
                     rt_event_send(&event, RT_EVENT_LWC_ION_TIME_UPDATE);
+                }
+                break;
+                case RT_EVENT_LWC_ION_CURE_CLOSE:
+                {
+                    rt_timer_stop(&timerions);
+                    rt_pin_write(PB12_IONTHERAPY_PWR, PIN_LOW);
+                    rt_pin_write(PB13_IONTHERAPY_CRL1,PIN_LOW);
+                    rt_pin_write(PB14_IONTHERAPY_CRL2,PIN_LOW);
+                    rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);                                     
+                    rt_pin_write(PD2_BEEP, PIN_LOW);                   
                 }
                 break;
                 default:
