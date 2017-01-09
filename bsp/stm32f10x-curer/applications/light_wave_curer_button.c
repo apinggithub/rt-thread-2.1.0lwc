@@ -113,9 +113,15 @@ void lwc_button_thread_entry(void* parameter)
         if((1 == lct.lreg.tval.tmr_lock)&&(0 == flag_tmrval_start))           
         {
             if(1 <= lct.lreg.btn.button_lzlf)
-            {               
+            {  
+                rt_timer_stop(&timerdec);
                 lct.lreg.tval.tmr_value = 30;
-                rt_timer_start(&timerions);
+                tmr_init_val = lct.lreg.tval.tmr_value*60;
+                tmr_count_dec = 0;
+                rt_timer_start(&timerdec);
+                
+                flag_tmrval_start = 1;  
+                rt_timer_start(&timerions);                
                 if(0 == flag_voice_close)
                 {
                     vcno = 0x5A + 3;/* 30分钟 */
@@ -127,9 +133,7 @@ void lwc_button_thread_entry(void* parameter)
                 
             }
             
-            tmr_init_val = lct.lreg.tval.tmr_value*60;
-            rt_timer_start(&timerdec);
-            flag_tmrval_start = 1;                                              
+                                                        
             
         }
                     
@@ -161,11 +165,13 @@ void lwc_button_thread_entry(void* parameter)
                 case RT_EVENT_LWC_ION_TIME_UPDATE:
                 {
                     //flag_ion_timer_update = 1;
+                    rt_timer_stop(&timerdec);
                     lct.lreg.tval.tmr_value = 30;
-                    rt_timer_start(&timerions);
                     tmr_init_val = lct.lreg.tval.tmr_value*60;
+                    tmr_count_dec = 0;
                     rt_timer_start(&timerdec);
-                                             
+                    
+                    rt_timer_start(&timerions);                                                            
                     if(0 == flag_voice_close)
                     {
                         vcno = 0x5A + 3;/* 30分钟 */
@@ -573,10 +579,18 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
                     {  
-                        lct.lreg.btn.button_zl1_dir = 1;
+                        
                         if(23 < (++lct.lreg.btn.button_zl1))
                         {
                             lct.lreg.btn.button_zl1 = 23;
+                        }
+                        if(1 == lct.lreg.btn.button_zl1)
+                        {
+                                                        
+                            if(LWC_BASE_TIMER_RUNNING!= lct.lreg.btn.flag_base_timer_status)
+                            {
+                                lct.lreg.btn.flag_base_timer_status = LWC_BASE_TIMER_READY;
+                            }
                         }
                         if(0 == flag_voice_close)
                         {
@@ -594,10 +608,18 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
-                        lct.lreg.btn.button_zl2_dir = 1;
+                        
                         if(23 < (++lct.lreg.btn.button_zl2))
                         {
                             lct.lreg.btn.button_zl2 = 23;
+                        }
+                        if(1 == lct.lreg.btn.button_zl2)
+                        {
+                            
+                            if(LWC_BASE_TIMER_RUNNING!= lct.lreg.btn.flag_base_timer_status)
+                            {
+                                lct.lreg.btn.flag_base_timer_status = LWC_BASE_TIMER_READY;
+                            }
                         }
                         if(0 == flag_voice_close)
                         {
@@ -615,7 +637,7 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
                     {
-                        lct.lreg.btn.button_zl1_dir = 0;
+                        
                         if(0 < lct.lreg.btn.button_zl1 )
                         {
                             lct.lreg.btn.button_zl1--;
@@ -636,7 +658,7 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
-                        lct.lreg.btn.button_zl2_dir = 0;
+                        
                         if(0 < lct.lreg.btn.button_zl2 )
                         {
                             lct.lreg.btn.button_zl2--;

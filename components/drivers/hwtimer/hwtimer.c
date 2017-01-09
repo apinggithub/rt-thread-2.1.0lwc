@@ -29,7 +29,8 @@
 rt_inline rt_uint32_t timeout_calc(rt_device_hwtimer_t *timer, rt_uint8_t ch, rt_hwtimer_tmrval_t *tv)
 {
 
-    timer->cycles[ch] = tv->sec * timer->freq;
+    //timer->cycles[ch] = (rt_uint32_t)(tv->sec*1.0 + (tv->usec*1.0/1000000) * timer->freq);
+    timer->cycles[ch] = (rt_uint32_t)(tv->sec * timer->freq);
        
     return timer->cycles[ch];
 }
@@ -68,7 +69,7 @@ static rt_err_t rt_hwtimer_init(struct rt_device *dev)
         timer->prescaler = SystemCoreClock/10000 - 1; /*set the defualt prescaler is 7199 */
     }
     
-    timer->reload = SystemCoreClock/(timer->prescaler + 1)/timer->freq - 1; 
+    timer->reload = (rt_uint16_t)(SystemCoreClock/(timer->prescaler + 1)/timer->freq - 1); 
     //timer_period = sysclk/(timer->prescaler + 1)/freq - 1;    
     
     //timer->mode = HWTIMER_MODE_PERIOD;
@@ -144,8 +145,8 @@ static rt_size_t rt_hwtimer_read(struct rt_device *dev, rt_off_t pos, void *buff
         cnt = timer->info->maxcnt - cnt;
     }
 
-    RT_ASSERT(timer->freq != 0);
-    tv.sec =  timer->overflow[pos]/timer->freq;   
+    RT_ASSERT(timer->freq != 0.0);
+    tv.sec =  timer->overflow[pos]/(uint32_t)timer->freq;   
     tv.usec = (timer->overflow[pos]%(uint32_t)timer->freq)*1000000 + cnt;
     
     size = size > sizeof(tv)? sizeof(tv) : size;

@@ -32,6 +32,10 @@
 #define LWC_ACTIVED                         1
 #define LWC_INACTIVE                        0
 
+#define LWC_BASE_TIMER_IDLE                 0x00
+#define LWC_BASE_TIMER_READY                0x55
+#define LWC_BASE_TIMER_RUNNING              0xAA
+
 /* The pin NO. on the chip*/
 #define PD2_BEEP                        54 
 #define PB5_IONTHERAPY_RLY              30//57
@@ -132,8 +136,8 @@ typedef struct lwc_button
     uint8_t button_gn;/*功能*/
     uint8_t button_zl1;/* 治疗1 */
     uint8_t button_zl2;/* 治疗2 */
-    uint8_t button_zl1_dir; /* zl强度增长方向*/
-    uint8_t button_zl2_dir; /* zl强度增长方向*/
+    uint8_t flag_base_timer_status; /* 基本定时器工作状态 */
+    
 }lwc_button_t;
 
 typedef struct timer_val
@@ -192,7 +196,7 @@ extern rt_uint8_t lwc_button_stack[ 1024 ];
 extern struct rt_thread lwc_button_thread;
 extern rt_uint8_t lwc_display_stack[ 1024 ];
 extern struct rt_thread lwc_display_thread;
-extern rt_uint8_t lwc_output_stack[ 1024 ];
+extern rt_uint8_t lwc_output_stack[ 2048 ];
 extern struct rt_thread lwc_output_thread;
 
 extern void lwc_button_thread_entry(void* parameter);

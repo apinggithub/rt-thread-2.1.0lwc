@@ -50,7 +50,7 @@ static const float freq[][6] = {
 //static rt_sem_t sem = RT_NULL;
 
 ALIGN(RT_ALIGN_SIZE)
-rt_uint8_t lwc_output_stack[ 1024 ];
+rt_uint8_t lwc_output_stack[ 2048 ];
 struct rt_thread lwc_output_thread;
 
 struct rt_timer timerions;
@@ -115,7 +115,7 @@ static rt_err_t timer6_timeout_cb(rt_device_t dev, rt_size_t size)
     rt_hwtimer_chfreq_t     hwq;
     rt_hwtimer_tmrval_t     hwt;
     //rt_kprintf("HT %d\n", rt_tick_get());  
-    if((0 < lct.lreg.btn.button_gn)&&(8 > lct.lreg.btn.button_gn))
+    if((0 < lct.lreg.btn.button_gn)&&(9 >= lct.lreg.btn.button_gn))
     {
         if(5 < lff.fm_idx)/* 0 ~ 5*/
         {
@@ -151,7 +151,7 @@ static rt_err_t timer6_timeout_cb(rt_device_t dev, rt_size_t size)
         }
         switch(lct.lreg.btn.button_gn)
         {                
-            case FULL_FUNCTION:   /* È«¹¦ÄÜ */
+            case FULL_FUNCTION:   /* 1 È«¹¦ÄÜ */
             {
               if(5 == lff.fm_idx)
               {
@@ -167,42 +167,42 @@ static rt_err_t timer6_timeout_cb(rt_device_t dev, rt_size_t size)
               }             
             } 
             break; 
-            case MID_FREQUENCY:          /* ÖÐÆµ */
+            case MID_FREQUENCY:          /* 2 ÖÐÆµ */
             {
                 lff.func_idx = 0;
             }
             break; 
-            case ACUPUNCTURE_NEEDLE:     /* Õë¾Ä */
+            case ACUPUNCTURE_NEEDLE:     /* 3 Õë¾Ä */
             {    
                 lff.func_idx = 1;
             }
             break; 
-            case PAT_CURE:               /* ÅÄ´ò */
+            case PAT_CURE:               /* 4 ÅÄ´ò */
             {
                 lff.func_idx = 2;
             }
             break;     
-            case NAPRAPATHY:             /* ÍÆÄÃ */
+            case NAPRAPATHY:             /* 5 ÍÆÄÃ */
             {
                 lff.func_idx = 3;
             }
             break;     
-            case MASSOTHERAPY:           /* °´Ä¦ */
+            case MASSOTHERAPY:           /* 6 °´Ä¦ */
             {
                 lff.func_idx = 4;
             }
             break;     
-            case CUPPING_THERAPY:        /* °Î¹Þ */
+            case CUPPING_THERAPY:        /* 7 °Î¹Þ */
             {
                 lff.func_idx = 5;
             }
             break;     
-            case PEDICURE:               /* ×ãÁÆ */
+            case PEDICURE:               /* 8 ×ãÁÆ */
             {
                 lff.func_idx = 6;
             }
             break; 
-            case LOSE_WEIGHT:            /* ¼õ·Ê */
+            case LOSE_WEIGHT:            /* 9 ¼õ·Ê */
             {
                 lff.func_idx = 7;
             }
@@ -403,6 +403,7 @@ void lwc_output_thread_entry(void* parameter)
                     lwc_cure_timer4_output(dev_hwtimer4, (lwc_cure_t *)&lct);
                     if((0 == lct.lreg.btn.button_zl1 )&&(0 == lct.lreg.btn.button_zl2 ))
                     {
+                        lct.lreg.btn.flag_base_timer_status = LWC_BASE_TIMER_IDLE;
                         hwq.ch = TMR_CH_BASE;  
                         rt_device_control(dev_hwtimer6, HWTIMER_CTRL_STOP, &hwq);
                     }
@@ -422,16 +423,21 @@ void lwc_output_thread_entry(void* parameter)
                 break;
                 case RT_EVENT_LWC_ION_FUNC_START:    
                 {
+                    lct.lreg.btn.button_jg = 0;
                     lct.lway[LASER_CURE].status = LWC_INACTIVE;
                     lct.lcf[LASER_CURE].cure_out_actived = LWC_INACTIVE;
                     hwq.ch = TMR_CH_LASER_PWM;
                     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwq); 
                     
+                    lct.lreg.btn.button_rl = 0;
                     lct.lway[HEAT_CURE].status = LWC_INACTIVE;
                     lct.lcf[HEAT_CURE].cure_out_actived = LWC_INACTIVE;
                     hwq.ch = TMR_CH_HEAT_PWM;
                     rt_device_control(dev_hwtimer3, HWTIMER_CTRL_STOP, &hwq); 
                     
+                    lct.lreg.btn.button_gn = 0;
+                    lct.lreg.btn.button_zl1 = 0;
+                    lct.lreg.btn.button_zl2 = 0;
                     lct.lway[FUNCTION].status = LWC_INACTIVE;
                     lct.lcf[FUNCTION].cure_out_actived = LWC_INACTIVE;
                     hwq.ch = TMR_CH_CUREI_PWM;
@@ -443,7 +449,8 @@ void lwc_output_thread_entry(void* parameter)
                     hwq.ch = TMR_CH_CUREII_FREQ;
                     rt_device_control(dev_hwtimer4, HWTIMER_CTRL_STOP, &hwq);   
                     hwq.ch = TMR_CH_BASE;
-                    rt_device_control(dev_hwtimer6, HWTIMER_CTRL_STOP, &hwq);       
+                    rt_device_control(dev_hwtimer6, HWTIMER_CTRL_STOP, &hwq); 
+                    
                     lct.lcf[IONICE_CURE].cure_out_actived = LWC_ACTIVED; 
                     rt_event_send(&event, RT_EVENT_LWC_ION_TIME_UPDATE);
                 }
@@ -455,7 +462,8 @@ void lwc_output_thread_entry(void* parameter)
                     rt_pin_write(PB13_IONTHERAPY_CRL1,PIN_LOW);
                     rt_pin_write(PB14_IONTHERAPY_CRL2,PIN_LOW);
                     rt_pin_write(PB5_IONTHERAPY_RLY, PIN_LOW);                                     
-                    rt_pin_write(PD2_BEEP, PIN_LOW);                   
+                    rt_pin_write(PD2_BEEP, PIN_LOW);  
+                    lct.lcf[IONICE_CURE].cure_out_actived = LWC_INACTIVE;
                 }
                 break;
                 default:
@@ -704,37 +712,40 @@ static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc)
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
                     #endif
                 }                
-                if((1 == lc->lreg.btn.button_zl1)&&(1 == lc->lreg.btn.button_zl1_dir))
+                if(1 == lc->lreg.btn.button_zl1)
                 {
                     rt_device_t dev_hwtimer6 = RT_NULL;                                       
                     hwc.ch = TMR_CH_CUREI_PWM;                
                     rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
                     hwc.ch = TMR_CH_CUREI_FREQ;                
-                    rt_device_control(dev, HWTIMER_CTRL_START, &hwc); 
-                    if((dev_hwtimer6 = rt_device_find(TIMER6)) == RT_NULL)
+                    rt_device_control(dev, HWTIMER_CTRL_START, &hwc);
+                    if(LWC_BASE_TIMER_READY == lct.lreg.btn.flag_base_timer_status)
                     {
-                        rt_kprintf("No Device: %s\n", TIMER6);
-                        while(1);
-                    }
-                    rt_device_hwtimer_t *timer = (rt_device_hwtimer_t *)dev_hwtimer6;                                      
-                    if(0 == timer->channel_lock[TMR_CH_BASE])
-                    {                       
-                        hwt.sec = 0;  
-                        hwt.usec = 1000;
-                        
-                        hwc.ch = TMR_CH_BASE;                          
-                        if (rt_device_write(dev_hwtimer6, hwc.ch, &hwt, sizeof(hwt)) != sizeof(hwt))
+                        lct.lreg.btn.flag_base_timer_status = LWC_BASE_TIMER_RUNNING;
+                        if((dev_hwtimer6 = rt_device_find(TIMER6)) == RT_NULL)
                         {
-                            rt_kprintf("SetTime Fail\n");
+                            rt_kprintf("No Device: %s\n", TIMER6);
                             while(1);
                         }
-                        else
-                        {
-                            #ifdef USER_HWTIMER_APP_BUG_TEST
-                            rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt.sec, hwt.usec); 
-                            #endif
+                        rt_device_hwtimer_t *timer = (rt_device_hwtimer_t *)dev_hwtimer6;                                      
+                        if(0 == timer->channel_lock[TMR_CH_BASE])
+                        {                       
+                            hwt.sec = 1;  
+                            hwt.usec = 0;                            
+                            hwc.ch = TMR_CH_BASE;                          
+                            if (rt_device_write(dev_hwtimer6, hwc.ch, &hwt, sizeof(hwt)) != sizeof(hwt))
+                            {
+                                rt_kprintf("SetTime Fail\n");
+                                while(1);
+                            }
+                            else
+                            {
+                                #ifdef USER_HWTIMER_APP_BUG_TEST
+                                rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt.sec, hwt.usec); 
+                                #endif
+                            }
+                            
                         }
-                        
                     }
                 }                    
             }
@@ -771,39 +782,38 @@ static rt_err_t lwc_cure_timer4_output(rt_device_t dev, lwc_cure_t *lc)
                     rt_kprintf("Set ch = %d pwm = %d ok,\n", hwc.ch, hwc.value);
                     #endif
                 }
-                if((1 == lc->lreg.btn.button_zl2)&&(1 == lc->lreg.btn.button_zl2_dir))
+                if(1 == lc->lreg.btn.button_zl2)
                 {
                     rt_device_t dev_hwtimer6 = RT_NULL;                                       
                     hwc.ch = TMR_CH_CUREII_PWM;
                     rt_device_control(dev, HWTIMER_CTRL_START, &hwc);  
                     hwc.ch = TMR_CH_CUREII_FREQ;
-                    rt_device_control(dev, HWTIMER_CTRL_START, &hwc);                     
-                    if((dev_hwtimer6 = rt_device_find(TIMER6)) == RT_NULL)
+                    rt_device_control(dev, HWTIMER_CTRL_START, &hwc);  
+                    if(LWC_BASE_TIMER_READY == lct.lreg.btn.flag_base_timer_status)
                     {
-                        rt_kprintf("No Device: %s\n", TIMER6);
-                        while(1);
-                    }
-                    rt_device_hwtimer_t *timer = (rt_device_hwtimer_t *)dev_hwtimer6;  
-                    if(0 == timer->channel_lock[TMR_CH_BASE])
-                    {                   
-                        hwt.sec = 0;  
-                        hwt.usec = 1000;
-                        hwc.ch = TMR_CH_BASE;
+                        lct.lreg.btn.flag_base_timer_status = LWC_BASE_TIMER_RUNNING;
                         if((dev_hwtimer6 = rt_device_find(TIMER6)) == RT_NULL)
                         {
                             rt_kprintf("No Device: %s\n", TIMER6);
                             while(1);
-                        }                        
-                        if (rt_device_write(dev_hwtimer6, hwc.ch, &hwt, sizeof(hwt)) != sizeof(hwt))
-                        {
-                            rt_kprintf("SetTime Fail\n");
-                            while(1);
                         }
-                        else
-                        {
-                            #ifdef USER_HWTIMER_APP_BUG_TEST
-                            rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt.sec, hwt.usec);   
-                            #endif
+                        rt_device_hwtimer_t *timer = (rt_device_hwtimer_t *)dev_hwtimer6;  
+                        if(0 == timer->channel_lock[TMR_CH_BASE])
+                        {                   
+                            hwt.sec = 1;  
+                            hwt.usec = 0;
+                            hwc.ch = TMR_CH_BASE;                                              
+                            if (rt_device_write(dev_hwtimer6, hwc.ch, &hwt, sizeof(hwt)) != sizeof(hwt))
+                            {
+                                rt_kprintf("SetTime Fail\n");
+                                while(1);
+                            }
+                            else
+                            {
+                                #ifdef USER_HWTIMER_APP_BUG_TEST
+                                rt_kprintf("SetTime: Sec %d, Usec %d\n", hwt.sec, hwt.usec);   
+                                #endif
+                            }
                         }
                     }
                 }                    

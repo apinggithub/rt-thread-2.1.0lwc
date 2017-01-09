@@ -699,7 +699,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[9].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));   
                     lc->lcdr[8].dat |= 0x04;                            
-                    lc->lcdr[8].dat &= ~0x02;                
+                    lc->lcdr[8].dat &= ~0x03;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     
                 }
@@ -818,7 +818,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                                          
                     lc->lcdr[9].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                             
-                    lc->lcdr[8].dat |= 0x05;                
+                    lc->lcdr[8].dat |= 0x04;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
