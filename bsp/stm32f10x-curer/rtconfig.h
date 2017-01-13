@@ -26,7 +26,6 @@
 
 /* Using Hook */
 #define RT_USING_HOOK
-
 /* Using hardware button */
  #define RT_USING_HWBUTTON 
  //#define RT_USING_HWBUTTON_TEST /*the button driver test cmd in finsh*/ 
@@ -39,69 +38,17 @@
  #define RT_USING_XT8XXP8
  //#define RT_USING_XT8XXP8_TEST /*the voice chip driver test cmd in finsh*/ 
  //#define RT_USING_XTP_ONE_WRIRE /* single wire mode*/
- 
-
 /* Using Software Timer */
 /* #define RT_USING_TIMER_SOFT */
 
-/* Using independent hardware Timer */
+/* Using independent hardware Timer, the channel and mode set of the timer is in drv_hwtimer.h*/
 #define RT_USING_HWTIMER  /*hardware timer driver switch*/
 //#define RT_USING_HWTIMER_TEST  /*hardware timer driver test cmd in finsh*/
-
 #define RT_USING_HWTIMER_HOOK
-
 #define RT_USING_HWTIM6 /*the base hardtimer TIM6*/
 //#define RT_USING_HWTIM2   /*the general hardtimer TIM2*/
-
 #define RT_USING_HWTIM3   /*the general hardtimer TIM2*/
-//#define RT_USING_HWTIM3_CH1 /* 0 ---> disable or 1 ---> enable blow for single choice */
-#define RT_USING_HWTIM3_CH1_PWM   0   /* select timer pwm mode */
-#define RT_USING_HWTIM3_CH1_OCM   0   /* select timer compare out mode */
-#define RT_USING_HWTIM3_CH1_IC    0   /* select timer intput capture mode */
-#define RT_USING_HWTIM3_CH1_ENCODER 0 /* select timer encoder mode */
-
-//#define RT_USING_HWTIM3_CH2 
-#define RT_USING_HWTIM3_CH2_PWM   0   /*select timer pwm mode*/
-#define RT_USING_HWTIM3_CH2_OCM   0   /*select timer compare out mode*/
-#define RT_USING_HWTIM3_CH2_IC    0   /*select timer intput capture mode*/
-#define RT_USING_HWTIM3_CH2_ENCODER 0 /*select timer encoder mode*/
-
-#define RT_USING_HWTIM3_CH3 /* 0 ---> disable or 1 ---> enable blow for single choice */
-#define RT_USING_HWTIM3_CH3_PWM   1   /*select timer pwm mode*/
-#define RT_USING_HWTIM3_CH3_OCM   0   /*select timer compare out mode*/
-#define RT_USING_HWTIM3_CH3_IC    0   /*select timer intput capture mode*/
-#define RT_USING_HWTIM3_CH3_ENCODER   0 /*select timer encoder mode*/
-
-#define RT_USING_HWTIM3_CH4 /* 0 ---> disable or 1 ---> enable blow for single choice */
-#define RT_USING_HWTIM3_CH4_PWM   1   /*select timer pwm mode*/
-#define RT_USING_HWTIM3_CH4_OCM   0   /*select timer compare out mode*/
-#define RT_USING_HWTIM3_CH4_IC    0   /*select timer intput capture mode*/
-#define RT_USING_HWTIM3_CH4_ENCODER 0 /*select timer encoder mode*/
-
 #define RT_USING_HWTIM4   /*the general hardtimer TIM4*/
-#define RT_USING_HWTIM4_CH1 /* 0 ---> disable or 1 ---> enable blow for single choice */
-#define RT_USING_HWTIM4_CH1_PWM   1   /*select timer pwm mode*/
-#define RT_USING_HWTIM4_CH1_OCM   0   /*select timer compare out mode*/
-#define RT_USING_HWTIM4_CH1_IC    0   /*select timer intput capture mode*/
-#define RT_USING_HWTIM4_CH1_ENCODER   0 /*select timer encoder mode*/
-
-#define RT_USING_HWTIM4_CH2 /* 0 ---> disable or 1 ---> enable blow for single choice */
-#define RT_USING_HWTIM4_CH2_PWM   0   /*select timer pwm mode*/
-#define RT_USING_HWTIM4_CH2_OCM   1   /*select timer compare out mode*/
-#define RT_USING_HWTIM4_CH2_IC    0   /*select timer intput capture mode*/
-#define RT_USING_HWTIM4_CH2_ENCODER   0 /*select timer encoder mode*/
-
-#define RT_USING_HWTIM4_CH3 /* 0 ---> disable or 1 ---> enable blow for single choice */
-#define RT_USING_HWTIM4_CH3_PWM   1   /*select timer pwm mode*/
-#define RT_USING_HWTIM4_CH3_OCM   0   /*select timer compare out mode*/
-#define RT_USING_HWTIM4_CH3_IC    0   /*select timer intput capture mode*/
-#define RT_USING_HWTIM4_CH3_ENCODER 0 /*select timer encoder mode*/
-
-#define RT_USING_HWTIM4_CH4 /* 0 ---> disable or 1 ---> enable blow for single choice */
-#define RT_USING_HWTIM4_CH4_PWM   0   /*select timer pwm mode*/
-#define RT_USING_HWTIM4_CH4_OCM   1   /*select timer compare out mode*/
-#define RT_USING_HWTIM4_CH4_IC    0   /*select timer intput capture mode*/
-#define RT_USING_HWTIM4_CH4_ENCODER 0 /*select timer encoder mode*/
 
 #define RT_TIMER_THREAD_PRIO		4
 #define RT_TIMER_THREAD_STACK_SIZE	512

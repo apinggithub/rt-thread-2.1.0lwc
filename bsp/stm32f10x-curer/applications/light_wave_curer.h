@@ -25,7 +25,10 @@
 #include <stdint.h>
 #include <drivers/lcdht1621b.h>
 
+#include <drv_hwtimer.h>
+
 /* debug switch */
+
 //#define USER_HWTIMER_APP_BUG_TEST
 
 
@@ -59,8 +62,8 @@
 #define BUTTON_ZL1_INC                  0x14
 #define BUTTON_ZL2_INC                  0x18
 #define BUTTON_JG                       0x22
-#define BUTTON_SD                       0x24
-#define BUTTON_LZLF                     0x28
+#define BUTTON_SD                       0x28
+#define BUTTON_LZLF                     0x24
 #define BUTTON_JY                       0x31
 #define BUTTON_GN                       0x32
 #define BUTTON_ZL1_DEC                  0x34
