@@ -593,7 +593,9 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[9].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
                     lc->lcdr[8].dat &= ~0x06;                
-                    rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));                             
+                    rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));  
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
                     
                 }
                 else /*The label is blinking ,and the others is normal on */  
@@ -629,6 +631,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
                     lc->lcdr[8].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
                     
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -665,6 +669,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
                     lc->lcdr[8].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
                     
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -701,6 +707,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[8].dat |= 0x04;                            
                     lc->lcdr[8].dat &= ~0x03;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
                     
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -736,6 +744,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                            
                     lc->lcdr[8].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
                                                
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -772,6 +782,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                            
                     lc->lcdr[8].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
                                                
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -809,6 +821,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[8].dat |= 0x02; 
                     lc->lcdr[8].dat &= ~0x05;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
                                                 
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -845,6 +859,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                                                    
                     lc->lcdr[8].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
 
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -882,6 +898,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                                                    
                     lc->lcdr[8].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
 
                 }
                 else  /* The label is blinking ,and the others is normal on */ 
@@ -919,6 +937,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[8].dat |= 0x01;    
                     lc->lcdr[8].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
+                    lc->lcdr[12].dat &= ~0x0E;
+                    rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
 
                 }
                 else  /* The label is blinking ,and the others is normal on */ 

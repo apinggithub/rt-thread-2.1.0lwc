@@ -69,8 +69,9 @@ void lwc_button_thread_entry(void* parameter)
     rt_device_t dev_xtp = RT_NULL;
     //rt_uint32_t mb_msg[4];    
     rt_uint8_t flag_voice_close = 0;
-    rt_uint8_t flag_tmrval_start = 0;
-    //rt_uint8_t flag_ion_timer_update = 0;
+    rt_uint8_t flag_tmrval_start = 0;  
+    rt_uint8_t flag_wait_event_start = 0;
+    rt_uint16_t wait_op_count = 0;    
         
     rt_uint32_t recv_event;
     
@@ -109,9 +110,23 @@ void lwc_button_thread_entry(void* parameter)
 	  
     while (1)
     {
+        if((0 != lct.lreg.btn.button_dyds)&&(1 == flag_wait_event_start))
+        {
+            if(3000 > wait_op_count ) /* add once 0.02s*/
+            {
+                wait_op_count++;
+            }
+            else
+            { 
+               
+                wait_op_count = 0;
+                rt_event_send(&event, RT_EVENT_LWC_DEVICE_FORCE_CLOSE);
+            }
+        }
         
         if((1 == lct.lreg.tval.tmr_lock)&&(0 == flag_tmrval_start))           
         {
+                      
             rt_timer_stop(&timerdec);
             if(1 <= lct.lreg.btn.button_lzlf)
             {                 
@@ -140,19 +155,28 @@ void lwc_button_thread_entry(void* parameter)
                     
         if (rt_event_recv(&event, (RT_EVENT_LWC_DEVICE_POWER_CLOSE
                                     |RT_EVENT_LWC_ION_TIME_UPDATE
+                                    |RT_EVENT_LWC_WAIT_TMR_START
                                     ),
                            RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
                            RT_TICK_PER_SECOND/100, &recv_event) == RT_EOK)
         {
             switch(recv_event)
             {
+                case RT_EVENT_LWC_WAIT_TMR_START:
+                {
+                    wait_op_count = 0;
+                    flag_wait_event_start = 1;
+                }
+                break;
                 case RT_EVENT_LWC_DEVICE_POWER_CLOSE:
                 {
-                    if(0 == flag_voice_close)
+                                      
+                    if((0 == flag_voice_close)&&(1 == lct.lreg.tval.tmr_lock))
                     {
                         vcno = 0x5A + 31;/* 治疗结束，请关断电源，谢谢使用，祝您早日康复 */                   
                         rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));       
                     }
+                    flag_wait_event_start = 0;
                     rt_timer_stop(&timerdec);
                     rt_timer_stop(&timerions);
                     flag_tmrval_start = 0;
@@ -190,76 +214,78 @@ void lwc_button_thread_entry(void* parameter)
        
         /* read the button value */
         rt_device_read(dev_button, 0, &val, sizeof(val));        
-        //rt_kprintf("Read button = %x \n", val);                 
+        //rt_kprintf("Read button = %x \n", val);       
         switch(val)
         {
            
             case BUTTON_DY_DS:/* 0x12 电源 定时 */
             {
-                         
-                lct.lreg.btn.button_dyds++;
-                if(( lct.lreg.btn.button_dyds > 4)||(1 == lct.lreg.tval.tmr_lock ))
+                               
+                if(0 == lct.lreg.tval.tmr_lock )
                 {
-                    //if(0 == flag_voice_close)
-                    //{
-                    //    vcno = 0x5A + 31;/* 治疗结束，请关断电源，谢谢使用，祝您早日康复 */                   
-                    //    rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));       
-                    //}
-                    //lct.lreg.btn.button_dyds = 0;
-                    //lct.lreg.tval.tmr_lock = 0;
-                    //lct.lreg.tval.tmr_value = 0;
-                    //lct.lway[SET_TIMER].status = LWC_INACTIVE;
+                    lct.lreg.btn.button_dyds++;                
+                    if( lct.lreg.btn.button_dyds > 4)                  
+                    {
+                         if(0 == lct.lreg.tval.tmr_lock )
+                         {
+                            lct.lreg.btn.button_dyds = 2;
+                         }                     
+                    }
+                    if(1 == lct.lreg.btn.button_dyds) 
+                    {
+                        lct.lway[SET_TIMER].status = LWC_ACTIVED;
+                        if(0 == flag_voice_close)
+                        {
+                            vcno = 0x5A + 61;/* 欢迎使用光波康复理疗仪，请定时 */
+                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));    
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
+                    } 
+                    if(2 == lct.lreg.btn.button_dyds) 
+                    {
+                        lct.lreg.tval.tmr_value = 10;
+                        if(0 == flag_voice_close)
+                        {
+                            vcno = 0x5A + 1;/* 10分钟 */
+                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));  
+                            rt_thread_delay(1*RT_TICK_PER_SECOND );
+                            vcno = 0x5A + 4;/* 请设置治疗方式 */
+                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
+                    }
+                    else if(3 == lct.lreg.btn.button_dyds) 
+                    {
+                        lct.lreg.tval.tmr_value = 20;
+                        if(0 == flag_voice_close)
+                        {
+                            vcno = 0x5A + 2;/* 20分钟 */
+                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));
+                            rt_thread_delay(1*RT_TICK_PER_SECOND );
+                            vcno = 0x5A + 4;/* 请设置治疗方式 */
+                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
+                    }
+                    else if(4 == lct.lreg.btn.button_dyds) 
+                    {
+                        lct.lreg.tval.tmr_value = 30;
+                        if(0 == flag_voice_close)
+                        {
+                            vcno = 0x5A + 3;/* 30分钟 */
+                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));
+                            rt_thread_delay(1*RT_TICK_PER_SECOND );
+                            vcno = 0x5A + 4;/* 请设置治疗方式 */
+                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
+                        }
+                        rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
+                    } 
+                    rt_event_send(&event, RT_EVENT_LWC_WAIT_TMR_START);
+                }
+                else
+                {
                     rt_event_send(&event, RT_EVENT_LWC_DEVICE_FORCE_CLOSE);
-                } 
-                else if(1 == lct.lreg.btn.button_dyds) 
-                {
-                    lct.lway[SET_TIMER].status = LWC_ACTIVED;
-                    if(0 == flag_voice_close)
-                    {
-                        vcno = 0x5A + 61;/* 欢迎使用光波康复理疗仪，请定时 */
-                        rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));    
-                    }
-                    rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
-                } 
-                else if(2 == lct.lreg.btn.button_dyds) 
-                {
-                    lct.lreg.tval.tmr_value = 10;
-                    if(0 == flag_voice_close)
-                    {
-                        vcno = 0x5A + 1;/* 10分钟 */
-                        rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));  
-                        rt_thread_delay(1*RT_TICK_PER_SECOND );
-                        vcno = 0x5A + 4;/* 请设置治疗方式 */
-                        rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                    }
-                    rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                 }
-                else if(3 == lct.lreg.btn.button_dyds) 
-                {
-                    lct.lreg.tval.tmr_value = 20;
-                    if(0 == flag_voice_close)
-                    {
-                        vcno = 0x5A + 2;/* 20分钟 */
-                        rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));
-                        rt_thread_delay(1*RT_TICK_PER_SECOND );
-                        vcno = 0x5A + 4;/* 请设置治疗方式 */
-                        rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                    }
-                    rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
-                }
-                else if(4 == lct.lreg.btn.button_dyds) 
-                {
-                    lct.lreg.tval.tmr_value = 30;
-                    if(0 == flag_voice_close)
-                    {
-                        vcno = 0x5A + 3;/* 30分钟 */
-                        rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno));
-                        rt_thread_delay(1*RT_TICK_PER_SECOND );
-                        vcno = 0x5A + 4;/* 请设置治疗方式 */
-                        rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                    }
-                    rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
-                }                               
             }
             break;
             case BUTTON_JG:/* 0x22 激光 */
@@ -278,6 +304,7 @@ void lwc_button_thread_entry(void* parameter)
                         lct.lreg.btn.button_jg = 0;
                         lct.lway[LASER_CURE].status = LWC_INACTIVE;
                         rt_event_send(&event, RT_EVENT_LWC_LASER_CURE_CLOSE);
+                        rt_event_send(&event, RT_EVENT_LWC_WAIT_TMR_START);
                     } 
                     else if(1 == lct.lreg.btn.button_jg) 
                     {
@@ -314,6 +341,8 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
+                    wait_op_count = 0;
+                    flag_wait_event_start = 0;
                     lct.lreg.tval.tmr_lock = 1;         
                     lct.lreg.btn.button_rl++;
                     if( lct.lreg.btn.button_rl > 3)
@@ -326,6 +355,7 @@ void lwc_button_thread_entry(void* parameter)
                         lct.lreg.btn.button_rl = 0;
                         lct.lway[HEAT_CURE].status = LWC_INACTIVE;
                         rt_event_send(&event, RT_EVENT_LWC_HEAT_CURE_CLOSE);
+                        rt_event_send(&event, RT_EVENT_LWC_WAIT_TMR_START);
                     } 
                     else if(1 == lct.lreg.btn.button_rl) 
                     {                       
@@ -362,7 +392,8 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if(1 <= lct.lreg.btn.button_dyds)
                 {
-                                        
+                    wait_op_count = 0;
+                    flag_wait_event_start = 0;                    
                     lct.lreg.btn.button_lzlf++;
                     if( lct.lreg.btn.button_lzlf > 3)
                     { 
@@ -375,6 +406,7 @@ void lwc_button_thread_entry(void* parameter)
                         rt_event_send(&event, RT_EVENT_LWC_ION_CURE_CLOSE);
                         lct.lcf[IONICE_CURE].cure_out_actived = LWC_INACTIVE;
                         lct.lway[IONICE_CURE].status = LWC_INACTIVE;
+                        rt_event_send(&event, RT_EVENT_LWC_WAIT_TMR_START);
                         
                     } 
                     else if(1 == lct.lreg.btn.button_lzlf) 
@@ -419,7 +451,7 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
-                    lct.lreg.tval.tmr_lock = 1;           
+                            
                     lct.lreg.btn.button_gn++;
                     if( lct.lreg.btn.button_gn > 9)
                     {
@@ -549,7 +581,7 @@ void lwc_button_thread_entry(void* parameter)
             break;
             case BUTTON_SD:/* 0x24 锁定 */
             {
-                if((1 < lct.lreg.btn.button_dyds)&&(1 <= lct.lreg.btn.button_gn)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
+                if((1 < lct.lreg.btn.button_dyds)&&((1 <= lct.lreg.btn.button_zl1)||(1 <=lct.lreg.btn.button_zl2))&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
                     lct.lreg.btn.button_sd++;
                     if(1 < lct.lreg.btn.button_sd)
@@ -598,9 +630,10 @@ void lwc_button_thread_entry(void* parameter)
             { 
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
+                    
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
                     {  
-                        
+                        lct.lreg.tval.tmr_lock = 1;      
                         if(23 < (++lct.lreg.btn.button_zl1))
                         {
                             lct.lreg.btn.button_zl1 = 23;
@@ -625,11 +658,13 @@ void lwc_button_thread_entry(void* parameter)
             break;
             case BUTTON_ZL2_INC:/* 0x18 治疗2+ */
             {
+                  
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
+                    
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
-                        
+                        lct.lreg.tval.tmr_lock = 1;    
                         if(23 < (++lct.lreg.btn.button_zl2))
                         {
                             lct.lreg.btn.button_zl2 = 23;
@@ -656,9 +691,10 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
+                     
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
                     {
-                        
+                        lct.lreg.tval.tmr_lock = 1;     
                         if(0 < lct.lreg.btn.button_zl1 )
                         {
                             lct.lreg.btn.button_zl1--;
@@ -670,6 +706,10 @@ void lwc_button_thread_entry(void* parameter)
                         }
                         rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
+                    if((0 == lct.lreg.btn.button_zl1)&&(0 == lct.lreg.btn.button_zl2))
+                    {
+                        rt_event_send(&event, RT_EVENT_LWC_WAIT_TMR_START);
+                    }
                 }
             }
             break;
@@ -679,7 +719,7 @@ void lwc_button_thread_entry(void* parameter)
                 {
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
-                        
+                        lct.lreg.tval.tmr_lock = 1;      
                         if(0 < lct.lreg.btn.button_zl2 )
                         {
                             lct.lreg.btn.button_zl2--;
@@ -691,7 +731,12 @@ void lwc_button_thread_entry(void* parameter)
                         }
                         rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
+                    if((0 == lct.lreg.btn.button_zl1)&&(0 == lct.lreg.btn.button_zl2))
+                    {
+                        rt_event_send(&event, RT_EVENT_LWC_WAIT_TMR_START);
+                    }
                 }
+                
             }
             break;
             default:

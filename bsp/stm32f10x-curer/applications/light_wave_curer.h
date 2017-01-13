@@ -102,6 +102,7 @@
 #define RT_EVENT_LWC_ION_FUNC_START         1<<8 /* 离子治疗功能开启 */
 #define RT_EVENT_LWC_ION_TIME_UPDATE        1<<9 /* 离子治疗时间更新 */
 #define RT_EVENT_LWC_ION_CURE_CLOSE         1<<10 /* 离子治疗关闭 */
+#define RT_EVENT_LWC_WAIT_TMR_START         1<<11 /* 待机事件触发 */
 
 /* define cure mode */
 enum cure_mod
