@@ -292,6 +292,8 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
+                    wait_op_count = 0;
+                    flag_wait_event_start = 0;
                     lct.lreg.tval.tmr_lock = 1;              
                     lct.lreg.btn.button_jg++;
                     if( lct.lreg.btn.button_jg > 3)
@@ -451,7 +453,7 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
-                            
+                    wait_op_count = 0;        
                     lct.lreg.btn.button_gn++;
                     if( lct.lreg.btn.button_gn > 9)
                     {
@@ -630,14 +632,21 @@ void lwc_button_thread_entry(void* parameter)
             { 
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
-                    
+                    wait_op_count = 0;
+                    flag_wait_event_start = 0;   
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
                     {  
                         lct.lreg.tval.tmr_lock = 1;      
-                        if(23 < (++lct.lreg.btn.button_zl1))
+                        if(23 > lct.lreg.btn.button_zl1)
                         {
-                            lct.lreg.btn.button_zl1 = 23;
+                            lct.lreg.btn.button_zl1++;
+                            if(0 == flag_voice_close)
+                            {
+                                vcno = 0x5A + 19;/* 治疗输出强度1 增加 */
+                                rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
+                            }
                         }
+                        
                         if(1 == lct.lreg.btn.button_zl1)
                         {
                                                         
@@ -646,11 +655,7 @@ void lwc_button_thread_entry(void* parameter)
                                 lct.lreg.btn.flag_base_timer_status = LWC_BASE_TIMER_READY;
                             }
                         }
-                        if(0 == flag_voice_close)
-                        {
-                            vcno = 0x5A + 19;/* 治疗输出强度1 增加 */
-                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                        }
+                        
                         rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                 }
@@ -661,14 +666,21 @@ void lwc_button_thread_entry(void* parameter)
                   
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
-                    
+                    wait_op_count = 0;
+                    flag_wait_event_start = 0;   
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
                         lct.lreg.tval.tmr_lock = 1;    
-                        if(23 < (++lct.lreg.btn.button_zl2))
+                        if(23 > lct.lreg.btn.button_zl2)
                         {
-                            lct.lreg.btn.button_zl2 = 23;
+                            lct.lreg.btn.button_zl2++;
+                            if(0 == flag_voice_close)
+                            {
+                                vcno = 0x5A + 21;/* 治疗输出强度2 增加 */
+                                rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
+                            }
                         }
+                        
                         if(1 == lct.lreg.btn.button_zl2)
                         {
                             
@@ -677,11 +689,7 @@ void lwc_button_thread_entry(void* parameter)
                                 lct.lreg.btn.flag_base_timer_status = LWC_BASE_TIMER_READY;
                             }
                         }
-                        if(0 == flag_voice_close)
-                        {
-                            vcno = 0x5A + 21;/* 治疗输出强度2 增加 */
-                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                        }
+                        
                         rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                 }
@@ -691,19 +699,21 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
-                     
+                    wait_op_count = 0;
+                    flag_wait_event_start = 0;    
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status)
                     {
                         lct.lreg.tval.tmr_lock = 1;     
                         if(0 < lct.lreg.btn.button_zl1 )
                         {
                             lct.lreg.btn.button_zl1--;
+                            if(0 == flag_voice_close)
+                            {
+                                vcno = 0x5A + 20;/* 治疗输出强度1 减少 */
+                                rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
+                            }
                         }
-                        if(0 == flag_voice_close)
-                        {
-                            vcno = 0x5A + 20;/* 治疗输出强度1 减少 */
-                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                        }
+                        
                         rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                     if((0 == lct.lreg.btn.button_zl1)&&(0 == lct.lreg.btn.button_zl2))
@@ -717,18 +727,20 @@ void lwc_button_thread_entry(void* parameter)
             {
                 if((1 < lct.lreg.btn.button_dyds)&&(LWC_INACTIVE == lct.lcf[IONICE_CURE].cure_out_actived))
                 {
+                    wait_op_count = 0;
+                    flag_wait_event_start = 0;   
                     if(LWC_ACTIVED == lct.lway[FUNCTION].status) 
                     {
                         lct.lreg.tval.tmr_lock = 1;      
                         if(0 < lct.lreg.btn.button_zl2 )
                         {
                             lct.lreg.btn.button_zl2--;
-                        }
-                        if(0 == flag_voice_close)
-                        {
-                            vcno = 0x5A + 22;/* 治疗输出强度2 减少 */
-                            rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
-                        }
+                            if(0 == flag_voice_close)
+                            {
+                                vcno = 0x5A + 22;/* 治疗输出强度2 减少 */
+                                rt_device_write(dev_xtp, 0, &vcno, sizeof(vcno)); 
+                            }
+                        }                        
                         rt_event_send(&event, RT_EVENT_LWC_BUTTON_UPDATE);
                     }
                     if((0 == lct.lreg.btn.button_zl1)&&(0 == lct.lreg.btn.button_zl2))
