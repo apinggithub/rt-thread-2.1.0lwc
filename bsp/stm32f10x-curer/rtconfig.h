@@ -38,6 +38,11 @@
  #define RT_USING_XT8XXP8
  //#define RT_USING_XT8XXP8_TEST /*the voice chip driver test cmd in finsh*/ 
  //#define RT_USING_XTP_ONE_WRIRE /* single wire mode*/
+ 
+/*Using adc converter */
+#define RT_USING_HWADC
+//#define RT_USING_HWADC_TEST /*ADC1 channel test*/
+
 /* Using Software Timer */
 /* #define RT_USING_TIMER_SOFT */
 
@@ -46,9 +51,18 @@
 //#define RT_USING_HWTIMER_TEST  /*hardware timer driver test cmd in finsh*/
 #define RT_USING_HWTIMER_HOOK
 #define RT_USING_HWTIM6 /*the base hardtimer TIM6*/
-//#define RT_USING_HWTIM2   /*the general hardtimer TIM2*/
+
+#define RT_USING_HWTIM2   /*the general hardtimer TIM2*/
+//#define RT_USING_HWTIM2_ETR /*external clock*/
+
 #define RT_USING_HWTIM3   /*the general hardtimer TIM2*/
+//#define RT_USING_HWTIM3_ETR /*external clock*/
+
 #define RT_USING_HWTIM4   /*the general hardtimer TIM4*/
+
+#define RT_USING_HWTIM1   /*the advance hardtimer TIM1*/
+//#define RT_USING_HWTIM_CC_IRQ /* the capture or compare interrupt */
+#define RT_USING_HWTIM_UP_IRQ /* the update interrupt */
 
 #define RT_TIMER_THREAD_PRIO		4
 #define RT_TIMER_THREAD_STACK_SIZE	512
@@ -93,7 +107,7 @@
 
 #define RT_USING_UART1
 #define RT_USING_UART2
-//#define RT_USING_UART3
+/* #define RT_USING_UART3 */
 
 /*Using Pin select as device*/
 #define RT_USING_PIN
@@ -102,7 +116,7 @@
 /* SECTION: Console options */
 #define RT_USING_CONSOLE
 /* the buffer size of console*/
-#define RT_CONSOLEBUF_SIZE	        128
+#define RT_CONSOLEBUF_SIZE	        256
 // <string name="RT_CONSOLE_DEVICE_NAME" description="The device name for console" default="uart1" />
 // if you use the console, and you need to configure the 'STM32_CONSOLE_USART' in board.h .
 #define RT_CONSOLE_DEVICE_NAME	    "uart1"

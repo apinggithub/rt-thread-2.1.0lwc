@@ -40,7 +40,7 @@ int xtp(void)
         rt_thread_delay(RT_TICK_PER_SECOND);
         
         /* write the lcd */
-        for(uint8_t i = 0;i < 66; i++)
+        for(uint8_t i = 60;i < 69; i++)
         {
             vcno = 0x5A+i;     
             rt_device_write(devxtp, 0, &vcno, sizeof(vcno));

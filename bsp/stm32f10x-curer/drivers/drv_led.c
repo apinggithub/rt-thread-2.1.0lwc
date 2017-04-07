@@ -39,17 +39,20 @@ static void led_thread_entry(void *parameter)
 
 int rt_led_hw_init(void)
 {
-   GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitTypeDef GPIO_InitStruct;
 
-  /* GPIO Ports Clock Enable */
-  RCC_GPIO_LED1_CLK_ENABLE();
+    /* GPIO Ports Clock Enable */
+    RCC_GPIO_LED1_CLK_ENABLE();
+             
+    /* Configure GPIO pin: PA15 (LD1) */
+    GPIO_InitStruct.Pin   = GPIO_PIN_LED1;
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+    //GPIO_InitStruct.Pull  = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+    HAL_GPIO_Init(GPIO_PORT_LED1, &GPIO_InitStruct);
 
-  /* Configure GPIO pin: PA8 (LD1) */
-  GPIO_InitStruct.Pin   = GPIO_PIN_LED1;
-  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull  = GPIO_PULLDOWN;
-  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-  HAL_GPIO_Init(GPIO_PORT_LED1, &GPIO_InitStruct);
+     
+  
   return 0;
 }
 INIT_BOARD_EXPORT(rt_led_hw_init);

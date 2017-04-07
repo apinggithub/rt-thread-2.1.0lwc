@@ -422,8 +422,8 @@ static int stm32_pin_read(rt_device_t dev, rt_base_t pin)
 
     return value;
 }
-/*
-static int stm32_pin_toggle(rt_device_t dev, rt_base_t pin)
+
+static void stm32_pin_toggle(rt_device_t dev, rt_base_t pin)
 {
     int value;
     const struct pin_index *index;
@@ -433,22 +433,14 @@ static int stm32_pin_toggle(rt_device_t dev, rt_base_t pin)
     index = get_pin(pin);
     if (index == RT_NULL)
     {
-        return value;
+        return;
     }
     else
     {
-        HAL_GPIO_TogglePin(index->gpio, index->pin);
-        if(HAL_GPIO_ReadPin(index->gpio, index->pin)  == RESET)
-        {
-            value = PIN_LOW;
-        }
-        else
-        {
-            value = PIN_HIGH;
-        }        
+        HAL_GPIO_TogglePin(index->gpio, index->pin);              
     }
-    return value;   
-}*/
+    
+}
 
 static void RCC_APB2PeriphClockCmd(GPIO_TypeDef *gpio, FunctionalState NewState)
 {
@@ -559,6 +551,7 @@ const static struct rt_pin_ops _stm32_pin_ops =
     stm32_pin_mode,
     stm32_pin_write,
     stm32_pin_read,
+    stm32_pin_toggle
 };
 
 int stm32_hw_pin_init(void)

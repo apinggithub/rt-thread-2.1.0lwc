@@ -32,6 +32,7 @@
 
 #include "light_wave_curer.h"
 
+extern lwc_cure_t lct;
 //static rt_err_t seglcd_dislay_time(rt_device_t dev, rt_lcd_ramdat_t *lcds, uint8_t tmr_value, uint8_t flag);
 static rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc);
 
@@ -40,7 +41,7 @@ rt_uint16_t tmr_count = 0;
 static struct rt_timer timerblink;
 
 ALIGN(RT_ALIGN_SIZE)
-rt_uint8_t lwc_display_stack[ 1024 ];
+rt_uint8_t lwc_display_stack[2048];
 struct rt_thread lwc_display_thread;
 
 
@@ -61,6 +62,7 @@ void lwc_display_thread_entry(void* parameter)
     //rt_err_t result;
     //lwc_cure_display_t *rlwc;
     rt_device_t dev_slcd = RT_NULL;
+    rt_uint32_t recv_event;
     
     rt_memset(&lct.lreg.btn, 0, sizeof(lwc_button_t));
     rt_memset(&lct.lreg.tval, 0, sizeof(timer_val_t));
@@ -122,7 +124,27 @@ void lwc_display_thread_entry(void* parameter)
         {                             
             seglcd_display(dev_slcd, (lwc_cure_t *)&lct);
         }
-             
+        /*if (rt_event_recv(&event, (RT_EVENT_LWC_ION_FORCE_DISPLAY                                                                      
+                                    ),
+                           RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
+                           RT_TICK_PER_SECOND/100, &recv_event) == RT_EOK)
+        {
+            switch(recv_event)
+            {
+                                
+                case RT_EVENT_LWC_ION_FORCE_DISPLAY:
+                {
+                      lwc_force_display(dev_slcd, (lwc_cure_t *)&lct);                                          
+                }
+                break;
+                default:
+                break;
+            }
+        }*/
+        if(LWC_ACTIVED == lct.lcf[IONICE_CURE].cure_out_actived)
+        {
+            lwc_force_display(dev_slcd, (lwc_cure_t *)&lct);     
+        }            
         rt_thread_delay( RT_TICK_PER_SECOND/10 ); /* sleep 0.01 second and switch to other thread */       
     }
 }
@@ -368,7 +390,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
         rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10])); 
         lc->lcdr[9].dat |= 0x07;                
         rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-        lc->lcdr[8].dat |= 0x06;                
+        lc->lcdr[8].dat |= 0x07;                
         rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
         
         /*display heat cure*/
@@ -592,7 +614,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                           
                     lc->lcdr[9].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-                    lc->lcdr[8].dat &= ~0x06;                
+                    lc->lcdr[8].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));  
                     lc->lcdr[12].dat &= ~0x0E;
                     rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
@@ -605,7 +627,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10])); 
                     lc->lcdr[9].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-                    lc->lcdr[8].dat |= 0x06;                
+                    lc->lcdr[8].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -629,7 +651,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                     
                     lc->lcdr[9].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-                    lc->lcdr[8].dat &= ~0x06;                
+                    lc->lcdr[8].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     lc->lcdr[12].dat &= ~0x0E;
                     rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
@@ -642,7 +664,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                     
                     lc->lcdr[9].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-                    lc->lcdr[8].dat |= 0x06;                
+                    lc->lcdr[8].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -667,7 +689,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[9].dat |= 0x04;                            
                     lc->lcdr[9].dat &= ~0x03;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-                    lc->lcdr[8].dat &= ~0x06;                
+                    lc->lcdr[8].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     lc->lcdr[12].dat &= ~0x0E;
                     rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
@@ -680,7 +702,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                              
                     lc->lcdr[9].dat |= 0x03;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-                    lc->lcdr[8].dat |= 0x06;                
+                    lc->lcdr[8].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -718,7 +740,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                               
                     lc->lcdr[9].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                             
-                    lc->lcdr[8].dat |= 0x02;                
+                    lc->lcdr[8].dat |= 0x03;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -742,7 +764,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                  
                     lc->lcdr[9].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                            
-                    lc->lcdr[8].dat &= ~0x06;                
+                    lc->lcdr[8].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));
                     lc->lcdr[12].dat &= ~0x0E;
                     rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
@@ -755,7 +777,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                               
                     lc->lcdr[9].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                            
-                    lc->lcdr[8].dat |= 0x06;                
+                    lc->lcdr[8].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -780,7 +802,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[9].dat |= 0x02;  
                     lc->lcdr[9].dat &= ~0x05;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                            
-                    lc->lcdr[8].dat &= ~0x06;                
+                    lc->lcdr[8].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8]));
                     lc->lcdr[12].dat &= ~0x0E;
                     rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
@@ -793,7 +815,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                                       
                     lc->lcdr[9].dat |= 0x05;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                            
-                    lc->lcdr[8].dat |= 0x06;                
+                    lc->lcdr[8].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {    
@@ -832,7 +854,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                                          
                     lc->lcdr[9].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                             
-                    lc->lcdr[8].dat |= 0x04;                
+                    lc->lcdr[8].dat |= 0x05;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -857,7 +879,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                                       
                     lc->lcdr[9].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                                                    
-                    lc->lcdr[8].dat &= ~0x06;                
+                    lc->lcdr[8].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     lc->lcdr[12].dat &= ~0x0E;
                     rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
@@ -870,7 +892,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                                          
                     lc->lcdr[9].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                                                      
-                    lc->lcdr[8].dat |= 0x06;                
+                    lc->lcdr[8].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -896,7 +918,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     lc->lcdr[9].dat |= 0x01; 
                     lc->lcdr[9].dat &= ~0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                                                    
-                    lc->lcdr[8].dat &= ~0x06;                
+                    lc->lcdr[8].dat &= ~0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     lc->lcdr[12].dat &= ~0x0E;
                     rt_device_write(dev, 0, &lc->lcdr[12], sizeof(lc->lcdr[12]));
@@ -909,7 +931,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                     rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10]));                                                                                       
                     lc->lcdr[9].dat |= 0x06;                
                     rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9]));                                                      
-                    lc->lcdr[8].dat |= 0x06;                
+                    lc->lcdr[8].dat |= 0x07;                
                     rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
                     if(TMR_DELAY_500ms > tmr_count)
                     {
@@ -924,7 +946,6 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 } 
             }
             break;
-            #if 0
             case VOICE_FREQUENCY:/* 音频 */
             {
                 if((0 == lc->lreg.btn.button_zl1)&&(0 == lc->lreg.btn.button_zl2))/*The label is normal on ,and the others is normal off */   
@@ -963,184 +984,172 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 }
                 
             }           
-            break;
-            #endif
+            break;           
             default:
                 break;
         }
-        switch(lc->lreg.btn.button_zl1)
+        switch((lc->lreg.btn.button_zl1 + 1) / 2) /* y = (x+1)/2, x[0:23] */
         {
             case 0:
             {
-                
-                lc->lcdr[17].dat = 0; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
+                                
                 lc->lcdr[18].dat = 0;                
                 rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
                 lc->lcdr[19].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));   
+                lc->lcdr[17].dat = 0; 
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
                 
             }    
             break;                   
-            case 1:
-            case 2:
+            case 1:           
             {                        
                 
                 lc->lcdr[18].dat = 0x01; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0;                
                 rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
                 lc->lcdr[17].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                
+            }
+            break;           
+            case 2:
+            {                        
+                
+                lc->lcdr[18].dat = 0x03; 
+                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+                lc->lcdr[17].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
                 
             }
             break;
             case 3:
-            case 4:
             {                        
                 
-                lc->lcdr[18].dat = 0x03; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
+                lc->lcdr[18].dat = 0x07; 
+                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
                 lc->lcdr[19].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
                 lc->lcdr[17].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
-                
-            }
-            break;
-            case 5:
-            case 6:
-            {                        
-                
-                lc->lcdr[18].dat |= 0x07; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat &= ~0x0F;                
-                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
-                lc->lcdr[17].dat &= ~0x0F;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
                 
             }                    
             break;
-            case 7:
+            case 4:    
             {
                 
                 lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0;                
                 rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
                 lc->lcdr[17].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                
+            }
+            break;            
+            case 5:
+            {                        
+                
+                lc->lcdr[18].dat = 0x0F; 
+                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0x08;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+                lc->lcdr[17].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                
+            }
+            break;                        
+            case 6:    
+            {                        
+                
+                lc->lcdr[18].dat = 0x0F; 
+                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0x0C;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+                lc->lcdr[17].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                
+            }
+            break;           
+            case 7:    
+            {   
+                
+                lc->lcdr[18].dat = 0x0F; 
+                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0x0E;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+                lc->lcdr[17].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                
+            }
+            break;           
+            case 8:    
+            {                        
+                
+                lc->lcdr[18].dat = 0x0F; 
+                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0x0F;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+                lc->lcdr[17].dat = 0;                
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
                 
             }
             break;
-            case 8:
             case 9:
             {                        
                 
                 lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0x08;                
                 rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
-                lc->lcdr[17].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                lc->lcdr[19].dat = 0x0F;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+                lc->lcdr[17].dat = 0x01;                
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
                 
             }
             break;
             case 10:
-            case 11:
             {                        
                 
                 lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0x0C;                
                 rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
-                lc->lcdr[17].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
-                
-            }
-            break;
-            case 12:
-            case 13:
-            {   
-                
-                lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0x0E;                
-                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
-                lc->lcdr[17].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
-                
-            }
-            break;
-            case 14:
-            case 15:
-            {                        
-                
-                lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
                 lc->lcdr[19].dat = 0x0F;                
-                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
-                lc->lcdr[17].dat = 0;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
-                
-            }
-            break;
-            case 16:
-            case 17:
-            {                        
-                
-                lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0x0F;                
-                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
-                lc->lcdr[17].dat = 0x01;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
-                
-            }
-            break;
-            case 18:
-            case 19:
-            {                        
-                
-                lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0x0F;                
-                rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
                 lc->lcdr[17].dat = 0x03;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
                 
             }
             break;
-            case 20:
-            case 21:
+            case 11:
             {                        
                
                 lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0x0F;                
                 rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0x0F;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
                 lc->lcdr[17].dat = 0x07;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
                 
             }
-            break;
-            case 22:
-            case 23:
+            break;           
+            case 12:
             {                        
                 
                 lc->lcdr[18].dat = 0x0F; 
-                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
-                lc->lcdr[19].dat = 0x0F;                
                 rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+                lc->lcdr[19].dat = 0x0F;                
+                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
                 lc->lcdr[17].dat = 0x0F;                
-                rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19]));                               
+                rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
                 
             }
             break;
             default:
             break;
         }
-        switch(lc->lreg.btn.button_zl2)
+        switch((lc->lreg.btn.button_zl2 + 1) / 2) /* y = (x+1)/2, x[0:23] */
         {
             case 0:
             {
@@ -1155,7 +1164,6 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
             }    
             break;                   
             case 1:
-            case 2:
             {                        
                                                 
                 lc->lcdr[3].dat = 0x01; 
@@ -1167,8 +1175,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 
             }
             break;
-            case 3:
-            case 4:
+            case 2:
             {                        
                                                
                 lc->lcdr[3].dat = 0x03; 
@@ -1180,8 +1187,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 
             }
             break;
-            case 5:
-            case 6:
+            case 3:
             {                        
                                                 
                 lc->lcdr[3].dat = 0x07; 
@@ -1193,7 +1199,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                
             }                    
             break;
-            case 7:
+            case 4:    
             {
                                                 
                 lc->lcdr[3].dat = 0x0F; 
@@ -1204,9 +1210,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
                 
             }
-            break;
-            case 8:
-            case 9:
+            break;            
+            case 5:    
             {                        
                                                 
                 lc->lcdr[3].dat = 0x0F; 
@@ -1218,8 +1223,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 
             }
             break;
-            case 10:
-            case 11:
+            case 6:
             {                        
                                                 
                 lc->lcdr[3].dat = 0x0F; 
@@ -1231,8 +1235,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 
             }
             break;
-            case 12:
-            case 13:
+            case 7:
             {                        
                                                 
                 lc->lcdr[3].dat = 0x0F; 
@@ -1243,9 +1246,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
                 
             }
-            break;
-            case 14:
-            case 15:
+            break;            
+            case 8:    
             {                        
                                                
                 lc->lcdr[3].dat = 0x0F; 
@@ -1257,8 +1259,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 
             }
             break;
-            case 16:
-            case 17:
+            case 9:
             {                        
                                                
                 lc->lcdr[3].dat = 0x0F; 
@@ -1270,8 +1271,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 
             }
             break;
-            case 18:
-            case 19:
+            case 10:
             {                        
                                                
                 lc->lcdr[3].dat = 0x0F; 
@@ -1283,8 +1283,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 
             }
             break;
-            case 20:
-            case 21:
+            case 11:
             {                        
                                                 
                 lc->lcdr[3].dat = 0x0F; 
@@ -1295,9 +1294,8 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
                 rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
                 
             }
-            break;
-            case 22:
-            case 23:
+            break;            
+            case 12:
             {                        
                                                
                 lc->lcdr[3].dat = 0x0F; 
@@ -1332,7 +1330,7 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
         rt_device_write(dev, 0, &lc->lcdr[10], sizeof(lc->lcdr[10])); 
         lc->lcdr[9].dat &= ~0x07;                
         rt_device_write(dev, 0, &lc->lcdr[9], sizeof(lc->lcdr[9])); 
-        lc->lcdr[8].dat &= ~0x06;                
+        lc->lcdr[8].dat &= ~0x07;                
         rt_device_write(dev, 0, &lc->lcdr[8], sizeof(lc->lcdr[8])); 
         /*zl1 force reset*/
         lc->lcdr[17].dat = 0; 
@@ -1359,6 +1357,274 @@ rt_err_t seglcd_display(rt_device_t dev, lwc_cure_t *lc)
               
     return err;   
 }
+
+void lwc_force_display(rt_device_t dev, lwc_cure_t *lc)
+{
+    //rt_err_t err = RT_EOK;
+    RT_ASSERT(dev != RT_NULL);
+    RT_ASSERT(lc != RT_NULL);
+    switch(lc->ion_force)
+    {
+        case 0:
+        {
+                       
+            lc->lcdr[18].dat = 0;               
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0; 
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17])); 
+                                                      
+            lc->lcdr[3].dat = 0; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }    
+        break;  
+        case 1:
+        {                        
+            
+            lc->lcdr[18].dat = 0x01; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                                          
+                                            
+            lc->lcdr[3].dat = 0x01; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 2:
+        {                        
+                                                                                              
+            lc->lcdr[18].dat = 0x03; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));   
+            
+            lc->lcdr[3].dat = 0x03; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+        }
+        break;
+        case 3:
+        {                        
+            
+            lc->lcdr[18].dat = 0x07; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                                                   
+            lc->lcdr[3].dat = 0x07; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+           
+        }                    
+        break;
+        case 4:
+        {
+            
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                   
+                                            
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 5:
+        {                        
+            
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0x08;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+            
+                                         
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x08;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 6:
+        {                        
+            
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0x0C;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+            
+                                        
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x0C;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 7:
+        {   
+            
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0x0E;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+                                                  
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x0E;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 8:
+        {                        
+            
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+            
+                                       
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 9:
+        {                        
+            
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0x01;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+            
+                                      
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0x01;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 10:
+        {                        
+            
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0x03;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+            
+                                       
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0x03;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }
+        break;
+        case 11:
+        {                        
+           
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18])); 
+            lc->lcdr[19].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0x07;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+            
+                                       
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0x07;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }               
+        break;
+        case 12:
+        {                        
+           
+            lc->lcdr[18].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[18], sizeof(lc->lcdr[18]));            
+            lc->lcdr[19].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[19], sizeof(lc->lcdr[19])); 
+            lc->lcdr[17].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[17], sizeof(lc->lcdr[17]));                               
+            
+                                       
+            lc->lcdr[3].dat = 0x0F; 
+            rt_device_write(dev, 0, &lc->lcdr[3], sizeof(lc->lcdr[3])); 
+            lc->lcdr[4].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[4], sizeof(lc->lcdr[4])); 
+            lc->lcdr[5].dat = 0x0F;                
+            rt_device_write(dev, 0, &lc->lcdr[5], sizeof(lc->lcdr[5])); 
+            
+        }               
+        break;
+        default:
+        break;
+    }
+           
+}    
 
 
 

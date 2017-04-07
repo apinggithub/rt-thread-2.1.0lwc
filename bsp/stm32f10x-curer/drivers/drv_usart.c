@@ -245,7 +245,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 #endif /* RT_USING_UART1 */		
 
 #if defined(RT_USING_UART2)		
-		if (huart->Instance == USART2)
+    if (huart->Instance == USART2)
     {
         /*##-1- Enable peripherals and GPIO Clocks #################################*/
         /* Enable GPIO TX/RX clock */
@@ -264,7 +264,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
         HAL_GPIO_Init(USART2_TX_GPIO_PORT, &GPIO_InitStruct);
         
         /* UART RX GPIO pin configuration  */
-        GPIO_InitStruct.Pin = USART2_RX_PIN;       
+        GPIO_InitStruct.Pin       = USART2_RX_PIN;       
         GPIO_InitStruct.Mode      = GPIO_MODE_AF_INPUT;
         HAL_GPIO_Init(USART2_RX_GPIO_PORT, &GPIO_InitStruct);
         
@@ -302,7 +302,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
 #endif /* RT_USING_UART2 */
 
 #if defined(RT_USING_UART2)		
-		if (huart->Instance == USART2)
+	if (huart->Instance == USART2)
     {
         /*##-1- Reset peripherals ##################################################*/
         USART2_FORCE_RESET();

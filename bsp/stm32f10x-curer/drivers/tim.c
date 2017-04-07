@@ -33,6 +33,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <rtthread.h>
 #include "tim.h"
 #include "drv_hwtimer.h"
 
@@ -89,6 +90,20 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     HAL_NVIC_SetPriority(TIM4_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(TIM4_IRQn);
   }
+  if(tim_baseHandle->Instance==TIM1)
+  {
+    /* Peripheral clock enable */
+    __HAL_RCC_TIM1_CLK_ENABLE();
+#ifdef RT_USING_HWTIM_CC_IRQ
+    /* Peripheral interrupt init */
+    HAL_NVIC_SetPriority(TIM1_CC_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);
+#endif
+#ifdef RT_USING_HWTIM_UP_IRQ
+    HAL_NVIC_SetPriority(TIM1_UP_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);  
+#endif      
+  }
   
 }
 
@@ -137,7 +152,21 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
     /* Peripheral interrupt Deinit*/
     HAL_NVIC_DisableIRQ(TIM4_IRQn);
   }
+  if(tim_baseHandle->Instance==TIM1)
+  {
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM1_CLK_DISABLE();
 
+    /* Peripheral interrupt Deinit*/
+    #ifdef RT_USING_HWTIM_CC_IRQ
+    HAL_NVIC_DisableIRQ(TIM1_CC_IRQn);
+    #endif
+    #ifdef RT_USING_HWTIM_UP_IRQ 
+    HAL_NVIC_DisableIRQ(TIM1_UP_IRQn);  
+    #endif    
+      
+  }
+     
 } 
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
@@ -156,27 +185,36 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     */
       
     __HAL_RCC_GPIOA_CLK_ENABLE();  
-      
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+    /*GPIO_InitStruct.Pin = 0;     
+    #ifdef  RT_USING_HWTIM2_CH1   
+    GPIO_InitStruct.Pin |= GPIO_PIN_0;  
+    #endif
+    #ifdef  RT_USING_HWTIM2_CH2   
+    GPIO_InitStruct.Pin |= GPIO_PIN_1;
+    #endif 
+    #ifdef  RT_USING_HWTIM2_CH3  
+    GPIO_InitStruct.Pin |= GPIO_PIN_2;
+    #endif
+    #ifdef  RT_USING_HWTIM2_CH4   
+    GPIO_InitStruct.Pin |= GPIO_PIN_3;
+    #endif*/
+    #if 0
+    HAL_GPIO_DeInit(GPIOA,  GPIO_PIN_2|GPIO_PIN_3);
+    
+    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;    
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-       
-    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-      
-    #if 0     
+    #endif
+    
+    #if 1     
     __HAL_RCC_GPIOB_CLK_ENABLE();      
     GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);   
     __HAL_AFIO_REMAP_TIM2_PARTIAL_2(); 
-    #endif
-    
-   
+    #endif      
    }  
 #endif /* RT_USING_HWTIM2 */ 
 
@@ -184,14 +222,33 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
   if(timHandle->Instance==TIM3)
   {
     /**TIM3 GPIO Configuration    
-
-    PB0     ------> TIM2_CH3
-    PB1     ------> TIM2_CH4
+    PA6     ------> TIM3_CH1
+    PA7     ------> TIM3_CH2
+    PB0     ------> TIM3_CH3
+    PB1     ------> TIM4_CH4
     */
-      
+    __HAL_RCC_GPIOA_CLK_ENABLE();    
     __HAL_RCC_GPIOB_CLK_ENABLE();  
+    GPIO_InitStruct.Pin = 0;    
+    #ifdef  RT_USING_HWTIM3_CH1   
+    GPIO_InitStruct.Pin |= GPIO_PIN_6;  
+    #endif
+    #ifdef  RT_USING_HWTIM3_CH2 
+    GPIO_InitStruct.Pin |= GPIO_PIN_7;    
+    #endif 
       
-    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+     
+    GPIO_InitStruct.Pin = 0;      
+    #ifdef  RT_USING_HWTIM3_CH3   
+    GPIO_InitStruct.Pin |= GPIO_PIN_0;  
+    #endif
+    #ifdef  RT_USING_HWTIM3_CH4  
+    GPIO_InitStruct.Pin |= GPIO_PIN_1;  
+    #endif  
+         
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -209,21 +266,53 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     PB9     ------> TIM4_CH4 
     */
       
-    __HAL_RCC_GPIOB_CLK_ENABLE();  
+    __HAL_RCC_GPIOB_CLK_ENABLE();
       
-    GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_8;
+    #ifdef  RT_USING_HWTIM4_CH1          
+    GPIO_InitStruct.Pin |= GPIO_PIN_6;
+    #endif  
+    #ifdef  RT_USING_HWTIM4_CH2 
+    GPIO_InitStruct.Pin |= GPIO_PIN_7;
+    #endif     
+    #ifdef  RT_USING_HWTIM4_CH3 
+    GPIO_InitStruct.Pin |= GPIO_PIN_8;
+    #endif
+    #ifdef  RT_USING_HWTIM4_CH4 
+    GPIO_InitStruct.Pin |= GPIO_PIN_9;
+    #endif 
+    
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);  
-
-    GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);    
    }  
-#endif /* RT_USING_HWTIM4 */    
+#endif /* RT_USING_HWTIM4 */ 
+
+#ifdef RT_USING_HWTIM1    
+  if(timHandle->Instance==TIM1)
+  {    
+    /* Peripheral clock enable */
+    __HAL_RCC_TIM1_CLK_ENABLE();
+ 
+    #if 1 == RT_USING_HWTIM1_EXTERNAL_CLOCK_EN          
+    /**TIM1 GPIO Configuration    
+    PA12     ------> TIM1_ETR 
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_12;
+    #endif
+    #ifdef  RT_USING_HWTIM1_CH1   
+    /**TIM1 GPIO Configuration    
+    PA8     ------> TIM1_CH1 
+    */
+    GPIO_InitStruct.Pin |= GPIO_PIN_8;
+    #endif       
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);     
+    
+   }  
+#endif /* RT_USING_HWTIM1 */    
+
 
 }
 

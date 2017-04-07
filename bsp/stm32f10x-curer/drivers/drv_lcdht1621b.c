@@ -89,7 +89,7 @@ static void HTB_SendFullScreenOn(void)
     /* seg0 ~ seg19 in use */
     for(uint8_t i = 0; i < 32; i++)
     { 
-        if((7 == i)||(8 == i))
+        if(7 == i)//||(8 == i)
         {
             HTB_SendDat(i, 0x0E);   
         }

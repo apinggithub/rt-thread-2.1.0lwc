@@ -10,10 +10,14 @@ board.c
 stm32f1xx_it.c
 drv_led.c
 drv_usart.c
+cvt.c
 """)
 
 if GetDepend(['RT_USING_PIN']):
     src += ['drv_gpio.c']
+	
+if GetDepend(['RT_USING_HWADC']):
+    src += ['drv_hwadc.c','adc.c']	
 	
 #add hardware timer driver.
 if GetDepend(['RT_USING_HWTIMER']):

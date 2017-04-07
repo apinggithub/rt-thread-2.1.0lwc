@@ -36,7 +36,7 @@
 #include "stm32f1xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+//#include "adctest/bsp_adc.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -154,7 +154,21 @@ void DebugMon_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f1xx.s).                    */
 /******************************************************************************/
+/**
+* @brief This function handles DMA1 channel1 global interrupt.
+*/
+#if 0
+void ADC_DMAx_CHANNELn_IRQHANDLER(void)
+{
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 0 */
 
+  /* USER CODE END DMA1_Channel1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adcx);
+  /* USER CODE BEGIN DMA1_Channel1_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel1_IRQn 1 */
+}
+#endif
 /**
 * @brief This function handles USART1 global interrupt.
 */

@@ -46,14 +46,21 @@
 #include "drv_hwbutton.h"
 #include "light_wave_curer.h"
 
-ALIGN(RT_ALIGN_SIZE)
-static rt_uint8_t led_stack[ 512 ];
-static struct rt_thread led_thread;
 
+ALIGN(RT_ALIGN_SIZE)
+static rt_uint8_t led_stack[ 256 ];
+static struct rt_thread led_thread;
 
 static void led_thread_entry(void* parameter)
 {
-    unsigned int count=0;
+    //unsigned int count=0;
+    rt_led_hw_init();
+    
+    //rt_pin_mode(PC13, PIN_MODE_OUTPUT);
+    //rt_pin_mode(PC14, PIN_MODE_OUTPUT);
+    //rt_pin_mode(PC15, PIN_MODE_OUTPUT);
+    //rt_pin_mode(PB3, PIN_MODE_OUTPUT);
+    //rt_pin_mode(PB4, PIN_MODE_OUTPUT);
     
     while (1)
     {
@@ -61,18 +68,25 @@ static void led_thread_entry(void* parameter)
 #ifndef RT_USING_FINSH
         rt_kprintf("led on, count : %d\r\n",count);
 #endif
-        count++;
-        rt_led_on();
-			  			
+        //count++;
+        //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
+        rt_led_on();			
         rt_thread_delay( RT_TICK_PER_SECOND/2 ); /* sleep 0.5 second and switch to other thread */
 
-			
+		//rt_pin_toggle(PC13);
+        //rt_pin_toggle(PC14);
+        //rt_pin_toggle(PC15);
+        //rt_pin_toggle(PB3);
+        //rt_pin_toggle(PB4);
+        
         /* led1 off */
 #ifndef RT_USING_FINSH
         rt_kprintf("led off\r\n");
 #endif
+        
+        //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);
         rt_led_off();
-        rt_thread_delay( RT_TICK_PER_SECOND/2 );
+        rt_thread_delay( RT_TICK_PER_SECOND/2 );       
     }
 }
 
@@ -168,6 +182,21 @@ int rt_application_init(void)
     {
         rt_thread_startup(&led_thread);
     }
+#ifdef RT_USING_HWADC    
+    /* init lwc process thread */
+    /*result = rt_thread_init(&lwc_adc_thread,
+                            "lwcadc",
+                            lwc_adc_thread_entry,
+                            RT_NULL,
+                            (rt_uint8_t*)&lwc_adc_stack[0],
+                            sizeof(lwc_adc_stack),
+                            25,
+                            5);
+    if (result == RT_EOK)
+    {
+        rt_thread_startup(&lwc_adc_thread);
+    }*/  
+#endif
     
 #ifdef RT_USING_LIGHT_WAVE_CURER   
     /* init lwc process thread */
@@ -177,7 +206,7 @@ int rt_application_init(void)
                             RT_NULL,
                             (rt_uint8_t*)&lwc_button_stack[0],
                             sizeof(lwc_button_stack),
-                            20,
+                            19,
                             5);
     if (result == RT_EOK)
     {
@@ -190,7 +219,7 @@ int rt_application_init(void)
                             RT_NULL,
                             (rt_uint8_t*)&lwc_display_stack[0],
                             sizeof(lwc_display_stack),
-                            20,
+                            22,
                             5);
     if (result == RT_EOK)
     {
@@ -203,7 +232,7 @@ int rt_application_init(void)
                             RT_NULL,
                             (rt_uint8_t*)&lwc_output_stack[0],
                             sizeof(lwc_output_stack),
-                            20,
+                            21,
                             5);
     if (result == RT_EOK)
     {

@@ -21,6 +21,8 @@
 #define XTP_DAT_H()  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_10,GPIO_PIN_SET)                                             
 #define XTP_DAT_L()  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_10,GPIO_PIN_RESET)  
 #else 
+#define XTP_RST_H()  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_10,GPIO_PIN_SET)                                             
+#define XTP_RST_L()  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_10,GPIO_PIN_RESET) 
 #define XTP_DAT_H()  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_11,GPIO_PIN_SET)                                             
 #define XTP_DAT_L()  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_11,GPIO_PIN_RESET) 
 #define XTP_CLK_H()  HAL_GPIO_WritePin(GPIOC,GPIO_PIN_12,GPIO_PIN_SET)                                             

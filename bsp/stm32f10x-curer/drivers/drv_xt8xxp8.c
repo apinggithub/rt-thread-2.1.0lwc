@@ -20,9 +20,7 @@
 //#include <core_cm3.h>
 
 #ifdef RT_USING_XT8XXP8
-
-
-
+#if 1
 static void rt_hw_us_delay(int us)
 {
     rt_uint32_t delta;
@@ -44,6 +42,7 @@ static void rt_hw_us_delay(int us)
         current_delay = SysTick->LOAD + delta - SysTick->VAL;
     } while( current_delay < us );
 }
+#endif
 #if 0
 __asm void wait() 
 { 
@@ -96,26 +95,29 @@ static void XTP_SendBitLsb(uint8_t dat)
     XTP_DAT_H();
     
 #else
-    
+    XTP_RST_H();//reset pin
     XTP_DAT_H();//data pin
-    XTP_CLK_H();//clock pin    
-    rt_thread_delay(RT_TICK_PER_SECOND*5/1000);  //5ms
-    //rt_thread_delay(RT_TICK_PER_SECOND*5/1000); 
+    XTP_CLK_L();/* clock pin rising edge to lock data */   
+    XTP_RST_L();
+    rt_thread_delay(RT_TICK_PER_SECOND*10/1000);  //30ms
+    XTP_RST_H();
+    rt_thread_delay(RT_TICK_PER_SECOND*10/1000); 
     for (uint8_t i = 0; i < 8; i++)
     {
         (dat & 0x01) ? XTP_DAT_H(): XTP_DAT_L(); 
         //rt_thread_delay(RT_TICK_PER_SECOND/1000); //1ms
         //rt_hw_us_delay(100);       
         XTP_CLK_L();
-        //rt_thread_delay(RT_TICK_PER_SECOND/1000);//1ms   
+        //rt_thread_delay(RT_TICK_PER_SECOND*1/1000); //2ms   
         rt_hw_us_delay(100);
         XTP_CLK_H();
-        //rt_thread_delay(RT_TICK_PER_SECOND/1000); //1ms
+        //rt_thread_delay(RT_TICK_PER_SECOND*1/1000); //2ms
         rt_hw_us_delay(100);        
         dat >>= 1;      
     }
     XTP_DAT_H(); 
     XTP_CLK_H();   
+    
 #endif    
 }
 

@@ -10,19 +10,7 @@ startup.c
 """)
 
 if GetDepend('RT_USING_LIGHT_WAVE_CURER'):
-    src += ['light_wave_curer_button.c','light_wave_curer_display.c','light_wave_curer_output.c']
-	
-if GetDepend('RT_USING_HWTIMER_TEST'):
-    src += ['drv_hwtimer_test.c']
-	
-if GetDepend('RT_USING_HWBUTTON_TEST'):
-    src += ['drv_hwbutton_test.c']	
-
-if GetDepend(['RT_USING_LCDHT1621B_TEST']):
-    src = src + ['drv_lcdht1621b_test.c']
-	
-if GetDepend(['RT_USING_XT8XXP8_TEST']):
-    src = src + ['drv_xt8xxp8_test.c']	
+    src += ['light_wave_curer_button.c','light_wave_curer_display.c','light_wave_curer_output.c']	
 
 if GetDepend('RT_USING_CAN'):
     src += ['canapp.c']
