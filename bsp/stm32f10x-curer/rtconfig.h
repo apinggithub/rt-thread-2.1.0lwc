@@ -3,7 +3,7 @@
 #define __RTTHREAD_CFG_H__
 
 /*Using application mode*/
-#define RT_USING_LIGHT_WAVE_CURER
+//#define RT_USING_LIGHT_WAVE_CURER
 
 /* RT_NAME_MAX*/
 #define RT_NAME_MAX	8
